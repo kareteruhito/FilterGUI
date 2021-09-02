@@ -53,12 +53,14 @@
                             ScaleX="{Binding ZoomScale.Value}"
                             ScaleY="{Binding ZoomScale.Value}"/>
         </Canvas.RenderTransform>
-        <Image x:Name="Image1"
+        <Image  x:Name="Image1"
+                RenderOptions.BitmapScalingMode="NearestNeighbor"
                 Visibility = "{Binding Image1Visibility.Value}"
                 SizeChanged="Image1_SizeChanged"
                 Source="{Binding Image1.Value}">
         </Image>
         <Image x:Name="Image2"
+                RenderOptions.BitmapScalingMode="NearestNeighbor"
                 Visibility = "{Binding Image2Visibility.Value}"
                 Source="{Binding Image2.Value}">
         </Image>
