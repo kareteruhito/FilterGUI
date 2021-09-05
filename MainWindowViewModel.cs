@@ -19,7 +19,7 @@ using System.Reactive.Disposables;
 using System.IO;
 using System.Drawing.Imaging;
 using System.Drawing;
-
+using System.Windows.Input.Manipulations;
 
 namespace FilterGUI
 {
@@ -67,6 +67,9 @@ namespace FilterGUI
 
         // フィルターコマンド
         public AsyncReactiveCommand FilterCommand { get; }
+
+        // コピーコマンド
+        public ReactiveCommand CopyCommand { get; }
 
         private SettingInfo _si;
         private string _filename;
@@ -238,6 +241,22 @@ namespace FilterGUI
                         Image1Visibility.Value = Visibility.Hidden;
                         Image2Visibility.Value = Visibility.Visible;
                         ToggleButtonText.Value = "フィルターON";
+                    }
+                )
+                .AddTo(Disposable);
+            
+            // コピーコマンドを初期化
+            CopyCommand = Image2
+                .Select(x => x != null)
+                .ToReactiveCommand()
+                .WithSubscribe(
+                    () => {
+                        BitmapSource source = GraphicsModel.ConvertRGBA(Image2.Value);
+                        PngBitmapEncoder pngEnc = new();
+                        pngEnc.Frames.Add(BitmapFrame.Create(source));
+                        using var ms = new System.IO.MemoryStream();
+                        pngEnc.Save(ms);
+                        Clipboard.SetData("PNG", ms);
                     }
                 )
                 .AddTo(Disposable);

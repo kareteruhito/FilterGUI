@@ -121,6 +121,16 @@ namespace FilterGUI
             // クロージング
             //Cv2.MorphologyEx(mat, mat, MorphTypes.Close, mKernel, null, 1);
 
+            // 縮小・拡大
+            var h = mat.Height;
+            var w = mat.Width;
+            var scale = 1000.0/((double)h);
+            var smallH = (int)((double)h * scale);
+            var smallW = (int)((double)w * scale);
+            Cv2.Resize(mat, mat, new OpenCvSharp.Size(smallW, smallH), 0.0, 0.0, InterpolationFlags.Lanczos4);
+            Cv2.Resize(mat, mat, new OpenCvSharp.Size(w, h), 0.0, 0.0, InterpolationFlags.Lanczos4);
+
+
             // ぼかし処理
             if (si.BlurNumberOfTimes > 0) OrignalBlur(ref mat, si.BlurNumberOfTimes);
 
@@ -155,6 +165,33 @@ namespace FilterGUI
             if (mat != null) mat.Dispose();
 
             return dst;
+        }
+
+        static public BitmapSource ConvertRGBA(BitmapSource src)
+        {
+            using var mat = BitmapSourceConverter.ToMat(src);
+
+            Cv2.CvtColor(mat, mat, ColorConversionCodes.GRAY2RGBA);
+
+            Debug.Print("チャンネル数:{0}", mat.Channels());
+
+            for (int y = 0; y < mat.Height; y++)
+            {
+                for (int x = 0; x < mat.Width; x++)
+                {
+                    //Vec3b pic = mat.At<Vec3b>(y, x);
+                    Vec4b pic = mat.At<Vec4b>(y, x);
+
+                    //pic[0] = 0;     // B
+                    //pic[1] = 0;     // G
+                    //pic[2] = 0;     // R
+                    pic[3] = (byte)(Convert.ToByte("255") - pic[0]);   // A
+
+                    mat.Set(y, x, pic);
+                }
+            }
+
+            return BitmapSourceConverter.ToBitmapSource(mat);
         }
     }
 }

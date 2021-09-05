@@ -159,6 +159,9 @@
       <Button Command="{Binding FilterCommand}"
               Content="フィルター"
               Margin="5" />
+      <Button Command="{Binding CopyCommand}"
+              Content="コピー"
+              Margin="5" />
     </StackPanel>
   </Grid>
 </Window>
