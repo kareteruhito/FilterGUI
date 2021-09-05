@@ -68,7 +68,11 @@
     </ScrollViewer>
     <StackPanel Grid.Column="1">
       <ToggleButton Content="{Binding ToggleButtonText.Value}"
-                    Command="{Binding ButtonCommand}"/>
+                    Command="{Binding FilterViewCommand}"
+                    Margin="5" />
+      <Button Command="{Binding SaveCommand}"
+              Content="保存"
+              Margin="5" />
       <Expander Header="ズーム">
         <StackPanel>
           <StackPanel Orientation=" Horizontal">
@@ -90,22 +94,10 @@
           </StackPanel>
           <Slider IsEnabled="{Binding SliderEnabled.Value}"
                   Value="{Binding BlurNumberOfTimes.Value}"
+                  SmallChange="1"
+                  LargeChange="10"
                   Minimum="0"
                   Maximum="128"/>
-        </StackPanel>
-      </Expander>
-      <Expander Header="アンシャープマスキングフィルタ">
-        <StackPanel>
-          <StackPanel Orientation="Horizontal">
-            <TextBlock  Text="K:" />
-            <TextBox  IsEnabled="{Binding SliderEnabled.Value}"
-                      Text="{Binding UnsharpMaskingK.Value}" />
-          </StackPanel>
-          <Slider IsEnabled="{Binding SliderEnabled.Value}"
-                  SmallChange="10"
-                  LargeChange="10"
-                  Maximum="150"
-                  Value="{Binding UnsharpMaskingK.Value}" />
         </StackPanel>
       </Expander>
       <Expander Header="ノンローカルミーンフィルタ">
@@ -129,12 +121,44 @@
                       Text="{Binding LaplacianKsize.Value}" />
           </StackPanel>
           <Slider IsEnabled="{Binding SliderEnabled.Value}"
-                  SmallChange="2"
+                  SmallChange="1"
                   LargeChange="2"
                   Maximum="9"
                   Value="{Binding LaplacianKsize.Value}"/>
         </StackPanel>
       </Expander>
+      <Expander Header="アンシャープマスキングフィルタ">
+        <StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock  Text="K:" />
+            <TextBox  IsEnabled="{Binding SliderEnabled.Value}"
+                      Text="{Binding UnsharpMaskingK.Value}" />
+          </StackPanel>
+          <Slider IsEnabled="{Binding SliderEnabled.Value}"
+                  SmallChange="5"
+                  LargeChange="10"
+                  Maximum="150"
+                  Value="{Binding UnsharpMaskingK.Value}" />
+        </StackPanel>
+      </Expander>
+      <Expander Header="ガンマ補正">
+        <StackPanel>
+          <StackPanel Orientation=" Horizontal">
+            <TextBlock  Text="ksize:" />
+            <TextBox  IsEnabled="{Binding SliderEnabled.Value}"
+                      Text="{Binding GammaVol.Value}" />
+          </StackPanel>
+          <Slider IsEnabled="{Binding SliderEnabled.Value}"
+                  SmallChange="1"
+                  LargeChange="5"
+                  Minimum="-40"
+                  Maximum="40"
+                  Value="{Binding GammaVol.Value}"/>
+        </StackPanel>
+      </Expander>
+      <Button Command="{Binding FilterCommand}"
+              Content="フィルター"
+              Margin="5" />
     </StackPanel>
   </Grid>
 </Window>

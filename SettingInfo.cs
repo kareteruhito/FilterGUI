@@ -6,6 +6,9 @@ namespace FilterGUI
         public int NonLocalMeanH{ get; set; } = 16;
         public int LaplacianKsize{ get; set; } = 0;
         public int UnsharpMaskingK{ get; set; } = 45;
+
+        // ガンマ補正値
+        public int GammaVol { get; set; } = 1;
         
         private string getSettingJsonPath()
         {
