@@ -47,16 +47,17 @@
           </i:EventTrigger>
       </i:Interaction.Triggers>
       <Canvas x:Name="Canvas1"
+              Height="{Binding CanvasHeight.Value}"
+              Width="{Binding CanvasWidth.Value}"
               Background="Green">
         <Canvas.RenderTransform>
-            <ScaleTransform Changed="Image1_SizeChanged"
-                            ScaleX="{Binding ZoomScale.Value}"
-                            ScaleY="{Binding ZoomScale.Value}"/>
+            <ScaleTransform ScaleX="{Binding ZoomScale.Value}"
+                            ScaleY="{Binding ZoomScale.Value}">
+            </ScaleTransform>
         </Canvas.RenderTransform>
         <Image  x:Name="Image1"
                 RenderOptions.BitmapScalingMode="NearestNeighbor"
                 Visibility = "{Binding Image1Visibility.Value}"
-                SizeChanged="Image1_SizeChanged"
                 Source="{Binding Image1.Value}">
         </Image>
         <Image x:Name="Image2"

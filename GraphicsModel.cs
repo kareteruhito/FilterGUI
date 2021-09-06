@@ -114,25 +114,65 @@ namespace FilterGUI
             var mat = BitmapSourceConverter.ToMat(src);
             Cv2.CvtColor(mat, mat, ColorConversionCodes.BGRA2GRAY);
 
+            var org = mat.Clone();
+            var th = mat.Clone();
+            //Cv2.Threshold(th, th, 127.0d, 255.0d, ThresholdTypes.Otsu);
+            Cv2.AdaptiveThreshold(th, th, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.Binary, 9, 0);
+
             // オープニング
-            //var mKernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new OpenCvSharp.Size(3, 3));
-            //Cv2.MorphologyEx(mat, mat, MorphTypes.Open, mKernel, null, 1);
+            var mKernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new OpenCvSharp.Size(3, 3));
+            //Cv2.MorphologyEx(th, th, MorphTypes.Open, mKernel, null, 1);
 
             // クロージング
-            //Cv2.MorphologyEx(mat, mat, MorphTypes.Close, mKernel, null, 1);
+            Cv2.MorphologyEx(th, th, MorphTypes.Close, mKernel, null, 1);
 
             // 縮小・拡大
+            /*
             var h = mat.Height;
             var w = mat.Width;
             var scale = 1000.0/((double)h);
             var smallH = (int)((double)h * scale);
             var smallW = (int)((double)w * scale);
-            Cv2.Resize(mat, mat, new OpenCvSharp.Size(smallW, smallH), 0.0, 0.0, InterpolationFlags.Lanczos4);
-            Cv2.Resize(mat, mat, new OpenCvSharp.Size(w, h), 0.0, 0.0, InterpolationFlags.Lanczos4);
+            */
+
+            // 縮小
+            //Cv2.Resize(mat, mat, new OpenCvSharp.Size(smallW, smallH), 0.0, 0.0, InterpolationFlags.Lanczos4);
+            
 
 
             // ぼかし処理
-            if (si.BlurNumberOfTimes > 0) OrignalBlur(ref mat, si.BlurNumberOfTimes);
+            if (si.BlurNumberOfTimes > 0)
+            {
+                //var ln = org.Clone();
+
+                //for (var i = 0; i < si.BlurNumberOfTimes; i++)
+                //    Cv2.GaussianBlur(mat, mat, new OpenCvSharp.Size(3,3), 1.0d);
+                OrignalBlur(ref mat, si.BlurNumberOfTimes);
+
+                /*
+                for (int y = 0; y < mat.Height; y++)
+                {
+                    for (int x = 0; x < mat.Width; x++)
+                    {
+                        byte thv = th.At<byte>(y, x);
+
+                        if (thv != 0)
+                        {
+                            mat.Set(y, x, ln.At<byte>(y, x));
+                        }
+                        //Vec3b pic = mat.At<Vec3b>(y, x);
+                        //Vec4b pic = mat.At<Vec4b>(y, x);
+
+                        //pic[0] = 0;     // B
+                        //pic[1] = 0;     // G
+                        //pic[2] = 0;     // R
+                        //pic[3] = (byte)(Convert.ToByte("255") - pic[0]);   // A
+
+                        //mat.Set(y, x, pic);
+                    }
+                }
+                */
+            }
 
             // ノンローカルミーンフィルタ
             if (si.NonLocalMeanH > 0) NonLocalMeans(ref mat, si.NonLocalMeanH);
@@ -159,10 +199,16 @@ namespace FilterGUI
             // ガンマ補正
             if (si.GammaVol > 10 || si.GammaVol < -10) GammaCorrection(ref mat, si.GammaVol);
 
+            // 拡大
+            //Cv2.Resize(mat, mat, new OpenCvSharp.Size(w, h), 0.0, 0.0, InterpolationFlags.Lanczos4);
+
             var dst = BitmapSourceConverter.ToBitmapSource(mat);
+            //var dst = BitmapSourceConverter.ToBitmapSource(th);
             dst.Freeze();
 
             if (mat != null) mat.Dispose();
+            if (th != null) th.Dispose();
+            if (org != null) th.Dispose();
 
             return dst;
         }

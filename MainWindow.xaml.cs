@@ -24,11 +24,5 @@ namespace FilterGUI
         {
             InitializeComponent();
         }
-        private void Image1_SizeChanged(object sender, EventArgs e)
-        {
-            if (Image1.Source == null) return;
-            Canvas1.Height = Image1.Source.Height * ZoomSlider.Value;
-            Canvas1.Width = Image1.Source.Width * ZoomSlider.Value;
-        }
     }
 }

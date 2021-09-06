@@ -37,7 +37,9 @@ namespace FilterGUI
 
         // 実行ボタンのテキスト
         public ReactiveProperty<string> ToggleButtonText { get; private set; }
-        public ReactiveProperty<int> ZoomScale { get; private set;} = new(1);
+
+        // ズーム倍率
+        public ReactiveProperty<int> ZoomScale { get; private set;}
 
         // スライドバーの有効フラグ
         public ReactiveProperty<bool> SliderEnabled {get; private set;} = new(false);
@@ -71,6 +73,12 @@ namespace FilterGUI
         // コピーコマンド
         public ReactiveCommand CopyCommand { get; }
 
+        // キャンバス高さ
+        public ReactiveProperty<double> CanvasHeight { get; private set; }
+
+        // キャンバス幅
+        public ReactiveProperty<double> CanvasWidth { get; private set; }
+        
         private SettingInfo _si;
         private string _filename;
 
@@ -84,13 +92,35 @@ namespace FilterGUI
                 .AddTo(Disposable);
 
             _si = new SettingInfo();
+            
+            // キャンバス高さ初期化
+            CanvasHeight = new ReactiveProperty<double>().AddTo(Disposable);
+            // キャンバス幅初期化
+            CanvasWidth = new ReactiveProperty<double>().AddTo(Disposable);
 
-            ZoomScale.AddTo(Disposable);
+            // ズーム倍率の初期化
+            ZoomScale = new ReactiveProperty<int>(1).AddTo(Disposable);
+            ZoomScale.Subscribe(
+                _ => {
+                    if (Image1 == null) return;
+                    if (Image1.Value == null) return;
 
+                    // キャンバスサイズの変更
+                    CanvasHeight.Value = (double)Image1.Value.PixelHeight * (double)ZoomScale.Value;
+                    CanvasWidth.Value = (double)Image1.Value.PixelWidth * (double)ZoomScale.Value;
+                }
+            );
+
+            // オリジナルイメージの初期化
             Image1 = new ReactiveProperty<BitmapSource>().AddTo(Disposable);
             Image1.Subscribe(
                 async img => {
                     if (img == null) return;
+                    
+                    // キャンバスサイズの変更
+                    CanvasHeight.Value = (double)Image1.Value.PixelHeight * (double)ZoomScale.Value;
+                    CanvasWidth.Value = (double)Image1.Value.PixelWidth * (double)ZoomScale.Value;
+
                     SliderEnabled.Value = false;
 
                     Image2.Value = await Task.Run(() => GraphicsModel.OpenCVFilter(img, _si));
@@ -100,6 +130,7 @@ namespace FilterGUI
                 }
             );
             Image1Visibility.AddTo(Disposable);
+
 
             Image2.AddTo(Disposable);
             Image2Visibility.AddTo(Disposable);
@@ -261,6 +292,7 @@ namespace FilterGUI
                 )
                 .AddTo(Disposable);
             
+
         }
         public void Loaded()
         {
