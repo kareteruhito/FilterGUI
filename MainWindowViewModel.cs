@@ -35,34 +35,44 @@ namespace FilterGUI
         public ReactiveProperty<BitmapSource> Image2 { get; private set; } = new();
         public ReactiveProperty<Visibility> Image2Visibility {get; private set;} = new(Visibility.Hidden);
 
-        // 実行ボタンのテキスト
-        public ReactiveProperty<string> ToggleButtonText { get; private set; }
-
         // ズーム倍率
         public ReactiveProperty<int> ZoomScale { get; private set;}
 
         // スライドバーの有効フラグ
         public ReactiveProperty<bool> SliderEnabled {get; private set;} = new(false);
 
-        // キャンセルフラグ
-        public ReactiveProperty<bool> CancelFlag { get; private set; } = new (false);
-
         // ぼかし回数
         public ReactiveProperty<int> BlurNumberOfTimes { get; }
         // ノンローカルミーンフィルタHパラメタ
-        public ReactiveProperty<int> NonLocalMeanH { get; }
+        public ReactiveProperty<float> NonLocalMeanH { get; }
+        // ノンローカルミーンフィルタHパラメタ(スライダー用)
+        public ReactiveProperty<int> NonLocalMeanHInt { get; }
         // ラプラシアンフィルタカーネルサイズ
         public ReactiveProperty<int> LaplacianKsize { get; }
         // アンシャープマスキングフィルタKパラメタ
-        public ReactiveProperty<int> UnsharpMaskingK { get; }
+        public ReactiveProperty<double> UnsharpMaskingK { get; }
+        // アンシャープマスキングフィルタKパラメタ(スライダー用)
+        public ReactiveProperty<int> UnsharpMaskingKInt { get; }
         // ガンマ補正値
         public ReactiveProperty<int> GammaVol { get; }
+        // バイラテラルフィルタ実行回数
+        public ReactiveProperty<int> BilateralFilterN { get; }
+        // バイラテラルフィルタDパラメタ
+        public ReactiveProperty<int> BilateralFilterD { get; }
+        // バイラテラルフィルタ色パラメタ
+        public ReactiveProperty<int> BilateralFilterColor { get; }
+        // バイラテラルフィルタ距離パラメタ
+        public ReactiveProperty<int> BilateralFilterSpace { get; }
+        // メディアンフィルターのカーネルサイズ
+        public ReactiveProperty<int> MedianKsize { get; }
 
         // ドロップコマンド
         public AsyncReactiveCommand<DragEventArgs> DropCommand { get; }
 
-        // フィルター有効コマンド
-        public ReactiveCommand FilterViewCommand { get; }
+        // フィルターOnOffボタンのテキスト
+        public ReactiveProperty<string> FilterOnOffText { get; private set; }
+        // フィルターOnOffコマンド
+        public ReactiveCommand FilterOnOffCommand { get; }
 
         // 保存コマンド
         public AsyncReactiveCommand SaveCommand { get; }
@@ -137,10 +147,6 @@ namespace FilterGUI
             Image2.AddTo(Disposable);
             Image2Visibility.AddTo(Disposable);
 
-            // 実行ボタンのテキストを初期化
-            ToggleButtonText = new ReactiveProperty<string>("フィルターOFF")
-                .AddTo(Disposable);
-            
             // ぼかし回数の初期化
             BlurNumberOfTimes = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.BlurNumberOfTimes)
                 .AddTo(Disposable);
@@ -149,54 +155,77 @@ namespace FilterGUI
             //ノンローカルミーンフィルタHパラメタの初期化
             NonLocalMeanH = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.NonLocalMeanH)
                 .AddTo(Disposable);
-            NonLocalMeanH.Subscribe(_ => {FilterFlag.Value = true;});
+            NonLocalMeanH.Subscribe( x => {
+                FilterFlag.Value = true;
+                if (NonLocalMeanHInt == null) return;
+                var intValue = (int)(x * 10f);
+                if (NonLocalMeanHInt.Value != intValue)
+                    NonLocalMeanHInt.Value = intValue;
+            });
+            NonLocalMeanHInt = new ReactiveProperty<int>((int)(NonLocalMeanH.Value * 10f))
+                .AddTo(Disposable);
+            NonLocalMeanHInt.Subscribe( x => {
+                FilterFlag.Value = true;
+                if (NonLocalMeanH == null) return;
+                var floatValue = (float)x / 10f;
+                if (NonLocalMeanH.Value != floatValue)
+                    NonLocalMeanH.Value = floatValue;
+            });
 
             // ラプラシアンカーネルサイズの初期化
             LaplacianKsize = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.LaplacianKsize)
                 .AddTo(Disposable);
-            NonLocalMeanH.Subscribe(_ => {FilterFlag.Value = true;});
+            LaplacianKsize.Subscribe(_ => {FilterFlag.Value = true;});
 
             // アンシャープマスキングフィルタKパラメタの初期化
             UnsharpMaskingK = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.UnsharpMaskingK)
                 .AddTo(Disposable);
-            UnsharpMaskingK.Subscribe(_ => {FilterFlag.Value = true;});
+            UnsharpMaskingK.Subscribe( x => {
+                FilterFlag.Value = true;
+                if (UnsharpMaskingKInt == null) return;
+                var intValue = (int)(x*10d);
+                if (UnsharpMaskingKInt.Value != intValue)
+                    UnsharpMaskingKInt.Value = intValue;
+            });
+            UnsharpMaskingKInt = new ReactiveProperty<int>((int)(UnsharpMaskingK.Value * 10d))
+                .AddTo(Disposable);
+            UnsharpMaskingKInt.Subscribe( x => {
+                FilterFlag.Value = true;
+                if (UnsharpMaskingK == null) return;
+                var doubleValue = (double)x / 10d;
+                if (UnsharpMaskingK.Value != doubleValue)
+                    UnsharpMaskingK.Value = doubleValue;
+            });
 
             // ガンマ補正値の初期化
             GammaVol = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.GammaVol)
                 .AddTo(Disposable);
             GammaVol.Subscribe(_ => {FilterFlag.Value = true;});
 
-            /*
-            BlurNumberOfTimes = new ReactiveProperty<int>(_si.BlurNumberOfTimes).AddTo(Disposable);
-            BlurNumberOfTimes.Subscribe(x=>{
-                _si.BlurNumberOfTimes = x;
-                FilterFlag.Value = true;
-            });
-            NonLocalMeanH = new ReactiveProperty<int>(_si.NonLocalMeanH).AddTo(Disposable);
-            NonLocalMeanH.Subscribe(x=>{
-                _si.NonLocalMeanH = x;
-                FilterFlag.Value = true;
-            });
+            // バイラテラルフィルタ実行回数の初期化
+            BilateralFilterN = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.BilateralFilterN)
+                .AddTo(Disposable);
+            BilateralFilterN.Subscribe(_ => {FilterFlag.Value = true;});
 
-            LaplacianKsize = new ReactiveProperty<int>(_si.LaplacianKsize).AddTo(Disposable);
-            LaplacianKsize.Subscribe(x=>{
-                _si.LaplacianKsize = x;
-                FilterFlag.Value = true;
-            });
+            // バイラテラルフィルタDパラメタの初期化
+            BilateralFilterD = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.BilateralFilterD)
+                .AddTo(Disposable);
+            BilateralFilterD.Subscribe(_ => {FilterFlag.Value = true;});
 
-            UnsharpMaskingK = new ReactiveProperty<int>(_si.UnsharpMaskingK).AddTo(Disposable);
-            UnsharpMaskingK.Subscribe(x=>{
-                _si.UnsharpMaskingK = x;
-                FilterFlag.Value = true;
-            });
+            // バイラテラルフィルタ色パラメタ
+            BilateralFilterColor = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.BilateralFilterColor)
+                .AddTo(Disposable);
+            BilateralFilterColor.Subscribe(_ => {FilterFlag.Value = true;});
 
-            // ガンマ補正値を初期化
-            GammaVol = new ReactiveProperty<int>(_si.GammaVol).AddTo(Disposable);
-            GammaVol.Subscribe(x=>{
-                _si.GammaVol = x;
-                FilterFlag.Value = true;
-            });
-            */
+            // バイラテラルフィルタ距離パラメタ
+            BilateralFilterSpace = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.BilateralFilterSpace)
+                .AddTo(Disposable);
+            BilateralFilterSpace.Subscribe(_ => {FilterFlag.Value = true;});
+
+            // メディアンフィルターカーネルサイズの初期化
+            MedianKsize = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.MedianKsize)
+                .AddTo(Disposable);
+            MedianKsize.Subscribe( _ => { FilterFlag.Value = true; } );
 
             // ドロップコマンドを初期化
             DropCommand = SliderEnabled
@@ -241,8 +270,12 @@ namespace FilterGUI
                 )
                 .AddTo(Disposable);
             
-            // フィルタービューコマンドの初期化
-            FilterViewCommand = Image1
+            // フィルターのOnOffボタンのテキストを初期化
+            FilterOnOffText = new ReactiveProperty<string>("フィルターOFF")
+                .AddTo(Disposable);
+
+            // フィルターのOnOffコマンドの初期化
+            FilterOnOffCommand = Image1
                 .CombineLatest(Image2, (x, y) => (x != null & y != null))
                 .ToReactiveCommand()
                 .WithSubscribe(
@@ -252,13 +285,13 @@ namespace FilterGUI
                         {
                             Image1Visibility.Value = Visibility.Hidden;
                             Image2Visibility.Value = Visibility.Visible;
-                            ToggleButtonText.Value = "フィルターON";
+                            FilterOnOffText.Value = "フィルターON";
                         }
                         else
                         {
                             Image1Visibility.Value = Visibility.Visible;
                             Image2Visibility.Value = Visibility.Hidden;
-                            ToggleButtonText.Value = "フィルターOFF";
+                            FilterOnOffText.Value = "フィルターOFF";
                         }
                     }
                 )
@@ -299,7 +332,7 @@ namespace FilterGUI
                         
                         Image1Visibility.Value = Visibility.Hidden;
                         Image2Visibility.Value = Visibility.Visible;
-                        ToggleButtonText.Value = "フィルターON";
+                        FilterOnOffText.Value = "フィルターON";
                     }
                 )
                 .AddTo(Disposable);
@@ -311,16 +344,14 @@ namespace FilterGUI
                 .WithSubscribe(
                     () => {
                         BitmapSource source = GraphicsModel.ConvertRGBA(Image2.Value);
-                        PngBitmapEncoder pngEnc = new();
-                        pngEnc.Frames.Add(BitmapFrame.Create(source));
-                        using var ms = new MemoryStream();
-                        pngEnc.Save(ms);
-                        Clipboard.SetData("PNG", ms);
+                        PngBitmapEncoder encoder = new();
+                        encoder.Frames.Add(BitmapFrame.Create(source));
+                        using var stream = new MemoryStream();
+                        encoder.Save(stream);
+                        Clipboard.SetData("PNG", stream);
                     }
                 )
                 .AddTo(Disposable);
-            
-
         }
         public void Loaded()
         {
@@ -335,14 +366,12 @@ namespace FilterGUI
                 {
                     var property = type.GetProperty(e.Name);
                     var v = property.GetValue(_graphicsModel);
-                    //property.SetValue(this, v);
 
                     var thisProperty = thisType.GetProperty(e.Name);
-                    var thisV = thisProperty.GetValue(this);
-                    if (thisV is ReactiveProperty<int>)
+                    var thisValue = thisProperty.GetValue(this);
+                    if (thisValue is ReactiveProperty<int> tv)
                     {
-                        var xv = (ReactiveProperty<int>)thisV;
-                        xv.Value = (int)v;
+                        tv.Value = (int)v;
                     }
                 }
             }

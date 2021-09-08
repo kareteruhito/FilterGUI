@@ -1,3 +1,4 @@
+using System.Reflection.Metadata;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -31,20 +32,6 @@ namespace FilterGUI
             }
         }
 
-        // ノンローカルミーンフィルタHパラメタ
-        private int _nonLocalMeanH = 16;
-        public int NonLocalMeanH
-        {
-            get { return _nonLocalMeanH; }
-            set
-            {
-                if (_nonLocalMeanH != value)
-                {
-                    _nonLocalMeanH = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NonLocalMeanH)));
-                }
-            }
-        }
         // ラプラシアンフィルタカーネルサイズ
         private int _laplacianKsize = 0;
         public int LaplacianKsize
@@ -60,8 +47,8 @@ namespace FilterGUI
             }
         }
         // アンシャープマスキングKパラメタ
-        private int _unsharpMaskingK = 15;
-        public int UnsharpMaskingK
+        private double _unsharpMaskingK = 1.5d;
+        public double UnsharpMaskingK
         {
             get { return _unsharpMaskingK; }
             set
@@ -178,7 +165,11 @@ namespace FilterGUI
 
             return File.Exists(path);
         }
-
+        /// <summary>
+        /// オリジナルぼかし
+        /// </summary>
+        /// <param name="mat">対象画像</param>
+        /// <param name="BlurNumberOfTimes">フィルター回数</param>
         static private void OrignalBlur(ref Mat mat, int BlurNumberOfTimes=12)
         {
             double[,] kernel = {
@@ -192,31 +183,18 @@ namespace FilterGUI
                 Cv2.Filter2D(mat, mat, -1, InputArray.Create(kernel));
             }
         }
-        static private void NonLocalMeans(ref Mat mat, int NonLocalMeanH=16)
+        /// <summary>
+        /// アンシャープマスキングフィルタ
+        /// </summary>
+        /// <param name="mat">対象画像</param>
+        /// <param name="k">フィルタ強度</param>
+        static private void UnSharpMasking(ref Mat mat, double k=0d)
         {
-            if (NonLocalMeanH == 0) return;
-            Cv2.FastNlMeansDenoising(mat, mat, (float)NonLocalMeanH);
-        }
-        static private Mat Laplacian(ref Mat src, int LaplacianKsize)
-        {
-            if (LaplacianKsize == 0) return null;
-            if (LaplacianKsize % 2 != 1) return null;
-
-            Mat dst = src.Clone();
-            //Cv2.Laplacian(src, dst, MatType.CV_8UC1, LaplacianKsize);
-            Cv2.Laplacian(src, dst, MatType.CV_64F, LaplacianKsize);
-            return dst;
-        }
-        static private void UnSharpMasking(ref Mat mat, int UnsharpMaskingK=45)
-        {
-            if (UnsharpMaskingK == 0) return;
-
-            double k = (double)UnsharpMaskingK / 10.0;
-            double[,] unsharpKernel = { { -k/9.0,        -k/9.0, -k/9.0},
-                                        { -k/9.0, 1.0+8.0*k/9.0, -k/9.0},
-                                        { -k/9.0,        -k/9.0, -k/9.0},
+            double[,] kernel = { { -k/9.0,        -k/9.0, -k/9.0},
+                                 { -k/9.0, 1.0+8.0*k/9.0, -k/9.0},
+                                 { -k/9.0,        -k/9.0, -k/9.0},
             };
-            Cv2.Filter2D(mat, mat, -1, InputArray.Create(unsharpKernel));
+            Cv2.Filter2D(mat, mat, -1, InputArray.Create(kernel));
         }
 
         // ガンマ補正
@@ -231,7 +209,6 @@ namespace FilterGUI
             for(var j = 0; j < y.Length; j++)
             {
                 y[j] = (int)(Math.Pow( (double)x[j] / 255.0, gamma ) * 255.0);
-                //Debug.Print("y[{0}]:{1} gamma:{2} Pow:{3} {4}", j, y[j], gamma, Math.Pow( x[j] / 255, gamma ), (double)x[j] / 255.0);
             }
 
             var dst = new Mat();
@@ -240,6 +217,134 @@ namespace FilterGUI
             dst.ConvertTo(src, MatType.CV_8UC1);
             
         }
+        // バイラテラルフィルタ実行回数
+        private int _bilateralFilterN = 0;
+        public int BilateralFilterN
+        {
+            get { return _bilateralFilterN; }
+            set
+            {
+                if (_bilateralFilterN != value)
+                {
+                    _bilateralFilterN = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BilateralFilterN)));
+                }
+            }
+        }
+        // バイラテラルフィルタDパラメタ
+        private int _bilateralFilterD = 3;
+        public int BilateralFilterD
+        {
+            get { return _bilateralFilterD; }
+            set
+            {
+                if (_bilateralFilterD != value)
+                {
+                    _bilateralFilterD = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BilateralFilterD)));
+                }
+            }
+        }
+        // バイラテラルフィルタ色パラメタ
+        private int _bilateralFilterColor = 20;
+        public int BilateralFilterColor
+        {
+            get { return _bilateralFilterColor; }
+            set
+            {
+                if (_bilateralFilterColor != value)
+                {
+                    _bilateralFilterColor = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BilateralFilterColor)));
+                }
+            }
+        }
+        // バイラテラルフィルタ距離パラメタ
+        private int _bilateralFilterSpace = 20;
+        public int BilateralFilterSpace
+        {
+            get { return _bilateralFilterSpace; }
+            set
+            {
+                if (_bilateralFilterSpace != value)
+                {
+                    _bilateralFilterSpace = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BilateralFilterSpace)));
+                }
+            }
+        }
+        // ノンローカルミーンフィルタHパラメタ
+        private float _nonLocalMeanH = 3.0f;
+        public float NonLocalMeanH
+        {
+            get { return _nonLocalMeanH; }
+            set
+            {
+                if (_nonLocalMeanH != value)
+                {
+                    _nonLocalMeanH = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NonLocalMeanH)));
+                }
+            }
+        }
+        private int _nonLocalMeanTempateWindowSize = 7;
+        public int NonLocalMeanTempateWindowSize
+        {
+            get { return _nonLocalMeanTempateWindowSize; }
+            set
+            {
+                if (_nonLocalMeanTempateWindowSize != value)
+                {
+                    _nonLocalMeanTempateWindowSize = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NonLocalMeanTempateWindowSize)));
+                }
+            }
+        }
+        // ノンローカルミーンフィルタサーチウィンドウサイズ
+        private int _nonLocalMeanSearchWindowSize = 21;
+        public int NonLocalMeanSearchWindowSize
+        {
+            get { return _nonLocalMeanSearchWindowSize; }
+            set
+            {
+                if (_nonLocalMeanSearchWindowSize != value)
+                {
+                    _nonLocalMeanSearchWindowSize = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NonLocalMeanSearchWindowSize)));
+                }
+            }
+        }
+        /// <summary>
+        /// バイラテラルフィルタ
+        /// </summary>
+        /// <param name="mat">対象画像</param>
+        /// <param name="n">フィルタ実行回数</param>
+        /// <param name="d">ぼかす領域の広さ</param>
+        /// <param name="sigmaColor">色。20以下...小、150以上...大</param>
+        /// <param name="sigmaSpace">距離。20以下...小、150以上...大</param>
+        static private void BilateralFilter(ref Mat mat, int n, int d, double sigmaColor, double sigmaSpace)
+        {
+            for(var i=0; i < n; i++)
+            {
+                using Mat tmp = mat.Clone();
+                Cv2.BilateralFilter(tmp, mat, d, sigmaColor, sigmaSpace);
+            }
+        }
+        // メディアンフィルタカーネルサイズ
+        private int _medianKsize = 0;
+        public int MedianKsize
+        {
+            get { return _medianKsize; }
+            set
+            {
+                if (_medianKsize != value)
+                {
+                    _medianKsize = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MedianKsize)));
+                }
+            }
+        }
+
         /// <summary>
         /// 画像フィルターを実行
         /// </summary>
@@ -256,21 +361,32 @@ namespace FilterGUI
                 OrignalBlur(ref mat, BlurNumberOfTimes);
             }
 
-            // ノンローカルミーンフィルタ
-            if (NonLocalMeanH > 0)
-                NonLocalMeans(ref mat, NonLocalMeanH);
-
-            // ラプラシアンフィルタ
-            if (LaplacianKsize % 2 == 1)
+            // メディアンフィルター
+            if (MedianKsize > 0)
             {
-                var edge = Laplacian(ref mat, LaplacianKsize);
-                if (edge != null)
-                {
-                    edge.ConvertTo(edge, MatType.CV_8UC1);
-                    // 減算
-                    Cv2.Subtract(mat, edge, mat);
-                    edge.Dispose();
-                }
+                Cv2.MedianBlur(mat, mat, MedianKsize + (1 - MedianKsize % 2));
+            }
+
+            // バイラテラルフィルタ
+            if (BilateralFilterN > 0)
+                BilateralFilter(ref mat, BilateralFilterN, BilateralFilterD, BilateralFilterColor, BilateralFilterSpace);
+
+            // ノンローカルミーンフィルタ
+            if (NonLocalMeanH > 0f)
+            {
+                Cv2.FastNlMeansDenoising(mat, mat, NonLocalMeanH, NonLocalMeanTempateWindowSize, NonLocalMeanTempateWindowSize);
+            }
+
+            // ラプラシアンフィルタ(輪郭強調)
+            if (LaplacianKsize > 0)
+            {
+                using var edge = mat.Clone();
+                var ksize = LaplacianKsize + (1 - LaplacianKsize % 2);
+                Cv2.Laplacian(mat, edge, MatType.CV_64F, ksize);
+
+                edge.ConvertTo(edge, MatType.CV_8UC1);
+                // 減算
+                Cv2.Subtract(mat, edge, mat);
             }
 
             // アンシャープマスキングフィルタ
