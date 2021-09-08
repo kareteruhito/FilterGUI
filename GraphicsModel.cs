@@ -7,10 +7,150 @@ using OpenCvSharp;
 using OpenCvSharp.Extensions;
 using OpenCvSharp.WpfExtensions;
 
+using System.ComponentModel;
+
 namespace FilterGUI
 {
-    class GraphicsModel
+    class GraphicsModel : INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged(string name) => PropertyChanged(this, new PropertyChangedEventArgs(name));
+
+        // ぼかし回数
+        private int _blurNumberOfTimes = 13;
+        public int BlurNumberOfTimes
+        {
+            get { return _blurNumberOfTimes; }
+            set
+            {
+                if (_blurNumberOfTimes != value)
+                {
+                    _blurNumberOfTimes = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BlurNumberOfTimes)));
+                }
+            }
+        }
+
+        // ノンローカルミーンフィルタHパラメタ
+        private int _nonLocalMeanH = 16;
+        public int NonLocalMeanH
+        {
+            get { return _nonLocalMeanH; }
+            set
+            {
+                if (_nonLocalMeanH != value)
+                {
+                    _nonLocalMeanH = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NonLocalMeanH)));
+                }
+            }
+        }
+        // ラプラシアンフィルタカーネルサイズ
+        private int _laplacianKsize = 0;
+        public int LaplacianKsize
+        {
+            get { return _laplacianKsize; }
+            set
+            {
+                if (_laplacianKsize != value)
+                {
+                    _laplacianKsize = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(LaplacianKsize)));
+                }
+            }
+        }
+        // アンシャープマスキングKパラメタ
+        private int _unsharpMaskingK = 15;
+        public int UnsharpMaskingK
+        {
+            get { return _unsharpMaskingK; }
+            set
+            {
+                if (_unsharpMaskingK != value)
+                {
+                    _unsharpMaskingK = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(UnsharpMaskingK)));
+                }
+            }
+        }
+
+        // ガンマ補正値
+        private int _gammaVol = 0;
+        public int GammaVol
+        {
+            get { return _gammaVol; }
+            set
+            {
+                if (_gammaVol != value)
+                {
+                    _gammaVol = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(GammaVol)));
+                }
+            }
+        }
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
+        public GraphicsModel()
+        {
+            PropertyChanged += (o, e) => {};
+        }
+        /// <summary>
+        /// 設定ファイルのパスを取得
+        /// </summary>
+        /// <returns>設定ファイルのパス</returns>
+        private string getSettingJsonPath()
+        {
+            var path = System.Reflection.Assembly.GetEntryAssembly().Location;
+            var dir = Path.GetDirectoryName(path);
+            return Path.Combine(dir, "setting.json");
+        }
+        /// <summary>
+        /// 設定ファイルの保存
+        /// </summary>
+        /// <param name="path">保存先のパス</param>
+        public void Save(string path="")
+        {
+            path = (path == "") ? getSettingJsonPath() : path;
+
+            var jsonStr = System.Text.Json.JsonSerializer.Serialize(this);
+
+            var encoding = System.Text.Encoding.GetEncoding("utf-8");
+            using var writer = new StreamWriter(path, false, encoding);
+            writer.WriteLine(jsonStr);
+        }
+
+        /// <summary>
+        /// 設定ファイルの読み込み
+        /// </summary>
+        /// <param name="path">読み込み元のパス</param>
+        /// <returns>成否フラグ</returns>
+        public bool Load(string path="")
+        {
+            path = (path == "") ? getSettingJsonPath() : path;
+            if (File.Exists(path) == false) return false;
+
+            string jsonStr = "";
+            var encoding = System.Text.Encoding.GetEncoding("utf-8");
+            using(var reader = new StreamReader(path, encoding))
+            {
+                jsonStr = reader.ReadToEnd();
+            }
+
+            var loadObj = System.Text.Json.JsonSerializer.Deserialize<GraphicsModel>(jsonStr);
+
+            var type = loadObj.GetType();
+
+            foreach(var e in type.GetProperties())
+            {
+                var property = type.GetProperty(e.Name);
+                var v = property.GetValue(loadObj);
+                property.SetValue(this, v);
+            }
+
+            return true;
+        }
+
         static public BitmapSource LoadBitmapSource(string file)
         {
             Mat mat = new(file);
@@ -29,7 +169,7 @@ namespace FilterGUI
             var path = Path.Combine(dir, (f + ".png"));
             
 
-            using (FileStream stream = new FileStream(path, FileMode.Create))
+            using (var stream = new FileStream(path, FileMode.Create))
             {
                 var encoder = new PngBitmapEncoder();
                 encoder.Frames.Add(BitmapFrame.Create(bi));
@@ -47,14 +187,6 @@ namespace FilterGUI
                     {0.0/16.0, 1.0/16.0,0.0/16.0},
             };
             
-            /*
-            double[,] kernel = {
-                    {0.0/5.0, 1.0/5.0, 0.0/5.0},
-                    {1.0/5.0, 1.0/5.0, 1.0/5.0},
-                    {0.0/5.0, 1.0/5.0, 0.0/5.0},
-            };
-            */
-
             for(int x=0; x<BlurNumberOfTimes; x++)
             {
                 Cv2.Filter2D(mat, mat, -1, InputArray.Create(kernel));
@@ -108,107 +240,51 @@ namespace FilterGUI
             dst.ConvertTo(src, MatType.CV_8UC1);
             
         }
-
-        static public BitmapSource OpenCVFilter(BitmapSource src, SettingInfo si)
+        /// <summary>
+        /// 画像フィルターを実行
+        /// </summary>
+        /// <param name="src">対象画像</param>
+        /// <returns>結果画像</returns>
+        public BitmapSource OpenCVFilter(BitmapSource src)
         {
             var mat = BitmapSourceConverter.ToMat(src);
             Cv2.CvtColor(mat, mat, ColorConversionCodes.BGRA2GRAY);
 
-            var org = mat.Clone();
-            var th = mat.Clone();
-            //Cv2.Threshold(th, th, 127.0d, 255.0d, ThresholdTypes.Otsu);
-            Cv2.AdaptiveThreshold(th, th, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.Binary, 9, 0);
-
-            // オープニング
-            var mKernel = Cv2.GetStructuringElement(MorphShapes.Ellipse, new OpenCvSharp.Size(3, 3));
-            //Cv2.MorphologyEx(th, th, MorphTypes.Open, mKernel, null, 1);
-
-            // クロージング
-            Cv2.MorphologyEx(th, th, MorphTypes.Close, mKernel, null, 1);
-
-            // 縮小・拡大
-            /*
-            var h = mat.Height;
-            var w = mat.Width;
-            var scale = 1000.0/((double)h);
-            var smallH = (int)((double)h * scale);
-            var smallW = (int)((double)w * scale);
-            */
-
-            // 縮小
-            //Cv2.Resize(mat, mat, new OpenCvSharp.Size(smallW, smallH), 0.0, 0.0, InterpolationFlags.Lanczos4);
-            
-
-
             // ぼかし処理
-            if (si.BlurNumberOfTimes > 0)
+            if (BlurNumberOfTimes > 0)
             {
-                //var ln = org.Clone();
-
-                //for (var i = 0; i < si.BlurNumberOfTimes; i++)
-                //    Cv2.GaussianBlur(mat, mat, new OpenCvSharp.Size(3,3), 1.0d);
-                OrignalBlur(ref mat, si.BlurNumberOfTimes);
-
-                /*
-                for (int y = 0; y < mat.Height; y++)
-                {
-                    for (int x = 0; x < mat.Width; x++)
-                    {
-                        byte thv = th.At<byte>(y, x);
-
-                        if (thv != 0)
-                        {
-                            mat.Set(y, x, ln.At<byte>(y, x));
-                        }
-                        //Vec3b pic = mat.At<Vec3b>(y, x);
-                        //Vec4b pic = mat.At<Vec4b>(y, x);
-
-                        //pic[0] = 0;     // B
-                        //pic[1] = 0;     // G
-                        //pic[2] = 0;     // R
-                        //pic[3] = (byte)(Convert.ToByte("255") - pic[0]);   // A
-
-                        //mat.Set(y, x, pic);
-                    }
-                }
-                */
+                OrignalBlur(ref mat, BlurNumberOfTimes);
             }
 
             // ノンローカルミーンフィルタ
-            if (si.NonLocalMeanH > 0) NonLocalMeans(ref mat, si.NonLocalMeanH);
+            if (NonLocalMeanH > 0)
+                NonLocalMeans(ref mat, NonLocalMeanH);
 
             // ラプラシアンフィルタ
-            if (si.LaplacianKsize % 2 == 1)
+            if (LaplacianKsize % 2 == 1)
             {
-                var edge = Laplacian(ref mat, si.LaplacianKsize);
+                var edge = Laplacian(ref mat, LaplacianKsize);
                 if (edge != null)
                 {
                     edge.ConvertTo(edge, MatType.CV_8UC1);
                     // 減算
-                    //mat = mat - edge;
                     Cv2.Subtract(mat, edge, mat);
-                    //Cv2.BitwiseNot(edge, mat);
-                    //mat = edge.Clone();
-                     if (edge != null) edge.Dispose();
+                    edge.Dispose();
                 }
             }
 
             // アンシャープマスキングフィルタ
-            if (si.UnsharpMaskingK > 0) UnSharpMasking(ref mat, si.UnsharpMaskingK);
+            if (UnsharpMaskingK > 0)
+                UnSharpMasking(ref mat, UnsharpMaskingK);
 
             // ガンマ補正
-            if (si.GammaVol > 10 || si.GammaVol < -10) GammaCorrection(ref mat, si.GammaVol);
-
-            // 拡大
-            //Cv2.Resize(mat, mat, new OpenCvSharp.Size(w, h), 0.0, 0.0, InterpolationFlags.Lanczos4);
+            if (GammaVol > 10 || GammaVol < -10)
+                GammaCorrection(ref mat, GammaVol);
 
             var dst = BitmapSourceConverter.ToBitmapSource(mat);
-            //var dst = BitmapSourceConverter.ToBitmapSource(th);
             dst.Freeze();
 
             if (mat != null) mat.Dispose();
-            if (th != null) th.Dispose();
-            if (org != null) th.Dispose();
 
             return dst;
         }
@@ -225,12 +301,8 @@ namespace FilterGUI
             {
                 for (int x = 0; x < mat.Width; x++)
                 {
-                    //Vec3b pic = mat.At<Vec3b>(y, x);
                     Vec4b pic = mat.At<Vec4b>(y, x);
 
-                    //pic[0] = 0;     // B
-                    //pic[1] = 0;     // G
-                    //pic[2] = 0;     // R
                     pic[3] = (byte)(Convert.ToByte("255") - pic[0]);   // A
 
                     mat.Set(y, x, pic);

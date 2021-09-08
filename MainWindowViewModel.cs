@@ -47,13 +47,16 @@ namespace FilterGUI
         // キャンセルフラグ
         public ReactiveProperty<bool> CancelFlag { get; private set; } = new (false);
 
-        public ReactiveProperty<int> BlurNumberOfTimes { get; private set;}
-        public ReactiveProperty<int> NonLocalMeanH { get; private set;}
-        public ReactiveProperty<int> LaplacianKsize { get; private set;}
-        public ReactiveProperty<int> UnsharpMaskingK { get; private set;}
-
+        // ぼかし回数
+        public ReactiveProperty<int> BlurNumberOfTimes { get; }
+        // ノンローカルミーンフィルタHパラメタ
+        public ReactiveProperty<int> NonLocalMeanH { get; }
+        // ラプラシアンフィルタカーネルサイズ
+        public ReactiveProperty<int> LaplacianKsize { get; }
+        // アンシャープマスキングフィルタKパラメタ
+        public ReactiveProperty<int> UnsharpMaskingK { get; }
         // ガンマ補正値
-        public ReactiveProperty<int> GammaVol { get; private set;}
+        public ReactiveProperty<int> GammaVol { get; }
 
         // ドロップコマンド
         public AsyncReactiveCommand<DragEventArgs> DropCommand { get; }
@@ -79,7 +82,8 @@ namespace FilterGUI
         // キャンバス幅
         public ReactiveProperty<double> CanvasWidth { get; private set; }
         
-        private SettingInfo _si;
+        // private SettingInfo _si;
+        private GraphicsModel _graphicsModel = new();
         private string _filename;
 
         public MainWindowViewModel()
@@ -87,17 +91,16 @@ namespace FilterGUI
             PropertyChanged += (o, e) => {};
             Title = new ReactiveProperty<string>("Title").AddTo(Disposable);
 
+            // ロードコマンドの初期化
             LoadedCommand = new ReactiveCommand<EventArgs>()
                 .WithSubscribe(_ => Loaded())
                 .AddTo(Disposable);
-
-            _si = new SettingInfo();
-            
             // キャンバス高さ初期化
-            CanvasHeight = new ReactiveProperty<double>().AddTo(Disposable);
+            CanvasHeight = new ReactiveProperty<double>()
+                .AddTo(Disposable);
             // キャンバス幅初期化
-            CanvasWidth = new ReactiveProperty<double>().AddTo(Disposable);
-
+            CanvasWidth = new ReactiveProperty<double>()
+                .AddTo(Disposable);
             // ズーム倍率の初期化
             ZoomScale = new ReactiveProperty<int>(1).AddTo(Disposable);
             ZoomScale.Subscribe(
@@ -123,23 +126,47 @@ namespace FilterGUI
 
                     SliderEnabled.Value = false;
 
-                    Image2.Value = await Task.Run(() => GraphicsModel.OpenCVFilter(img, _si));
+                    Image2.Value = await Task.Run(() => _graphicsModel.OpenCVFilter(img));
                     FilterFlag.Value = false;
 
                     SliderEnabled.Value = true;
                 }
             );
             Image1Visibility.AddTo(Disposable);
-
-
+            // フィルターイメージの初期化
             Image2.AddTo(Disposable);
             Image2Visibility.AddTo(Disposable);
 
             // 実行ボタンのテキストを初期化
-
             ToggleButtonText = new ReactiveProperty<string>("フィルターOFF")
                 .AddTo(Disposable);
+            
+            // ぼかし回数の初期化
+            BlurNumberOfTimes = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.BlurNumberOfTimes)
+                .AddTo(Disposable);
+            BlurNumberOfTimes.Subscribe(_ => {FilterFlag.Value = true;});
 
+            //ノンローカルミーンフィルタHパラメタの初期化
+            NonLocalMeanH = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.NonLocalMeanH)
+                .AddTo(Disposable);
+            NonLocalMeanH.Subscribe(_ => {FilterFlag.Value = true;});
+
+            // ラプラシアンカーネルサイズの初期化
+            LaplacianKsize = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.LaplacianKsize)
+                .AddTo(Disposable);
+            NonLocalMeanH.Subscribe(_ => {FilterFlag.Value = true;});
+
+            // アンシャープマスキングフィルタKパラメタの初期化
+            UnsharpMaskingK = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.UnsharpMaskingK)
+                .AddTo(Disposable);
+            UnsharpMaskingK.Subscribe(_ => {FilterFlag.Value = true;});
+
+            // ガンマ補正値の初期化
+            GammaVol = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.GammaVol)
+                .AddTo(Disposable);
+            GammaVol.Subscribe(_ => {FilterFlag.Value = true;});
+
+            /*
             BlurNumberOfTimes = new ReactiveProperty<int>(_si.BlurNumberOfTimes).AddTo(Disposable);
             BlurNumberOfTimes.Subscribe(x=>{
                 _si.BlurNumberOfTimes = x;
@@ -169,6 +196,7 @@ namespace FilterGUI
                 _si.GammaVol = x;
                 FilterFlag.Value = true;
             });
+            */
 
             // ドロップコマンドを初期化
             DropCommand = SliderEnabled
@@ -264,7 +292,7 @@ namespace FilterGUI
                     async () => {
                         SliderEnabled.Value = false;
 
-                        Image2.Value = await Task.Run(() => GraphicsModel.OpenCVFilter(Image1.Value, _si));
+                        Image2.Value = await Task.Run(() => _graphicsModel.OpenCVFilter(Image1.Value));
                         FilterFlag.Value = false;
 
                         SliderEnabled.Value = true;
@@ -285,7 +313,7 @@ namespace FilterGUI
                         BitmapSource source = GraphicsModel.ConvertRGBA(Image2.Value);
                         PngBitmapEncoder pngEnc = new();
                         pngEnc.Frames.Add(BitmapFrame.Create(source));
-                        using var ms = new System.IO.MemoryStream();
+                        using var ms = new MemoryStream();
                         pngEnc.Save(ms);
                         Clipboard.SetData("PNG", ms);
                     }
@@ -298,21 +326,15 @@ namespace FilterGUI
         {
             Debug.WriteLine("Loaded()");
 
-            if (_si.Load())
+            if (_graphicsModel.Load())
             {
-                /*
-                BlurNumberOfTimes.Value = _si.BlurNumberOfTimes;
-                NonLocalMeanH.Value = _si.NonLocalMeanH;
-                LaplacianKsize.Value = _si.LaplacianKsize;
-                UnsharpMaskingK.Value = _si.UnsharpMaskingK;
-                */
-                var type = _si.GetType();
+                var type = _graphicsModel.GetType();
                 var thisType = this.GetType();
 
                 foreach(var e in type.GetProperties())
                 {
                     var property = type.GetProperty(e.Name);
-                    var v = property.GetValue(_si);
+                    var v = property.GetValue(_graphicsModel);
                     //property.SetValue(this, v);
 
                     var thisProperty = thisType.GetProperty(e.Name);
@@ -328,7 +350,7 @@ namespace FilterGUI
         public void Dispose()
         {
             Debug.WriteLine("Dispose()");
-            _si.Save();
+            _graphicsModel.Save();
             Disposable.Dispose();
         }
     }
