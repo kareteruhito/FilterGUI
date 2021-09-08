@@ -47,6 +47,10 @@ namespace FilterGUI
         public ReactiveProperty<float> NonLocalMeanH { get; }
         // ノンローカルミーンフィルタHパラメタ(スライダー用)
         public ReactiveProperty<int> NonLocalMeanHInt { get; }
+        // ノンローカルミーンフィルタテンプレートウィンドウサイズ
+        public ReactiveProperty<int> NonLocalMeanTempateWindowSize { get; }
+        // ノンローカルミーンフィルタサーチウィンドウサイズ
+        public ReactiveProperty<int> NonLocalMeanSearchWindowSize { get; }
         // ラプラシアンフィルタカーネルサイズ
         public ReactiveProperty<int> LaplacianKsize { get; }
         // アンシャープマスキングフィルタKパラメタ
@@ -171,6 +175,14 @@ namespace FilterGUI
                 if (NonLocalMeanH.Value != floatValue)
                     NonLocalMeanH.Value = floatValue;
             });
+            // ノンローカルミーンフィルタテンプレートウィンドウサイズの初期化
+            NonLocalMeanTempateWindowSize = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.NonLocalMeanTempateWindowSize)
+                .AddTo(Disposable);
+            NonLocalMeanTempateWindowSize.Subscribe( _ => { FilterFlag.Value = true; } );
+            // ノンローカルミーンフィルタサーチウィンドウサイズの初期化
+            NonLocalMeanSearchWindowSize = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.NonLocalMeanSearchWindowSize)
+                .AddTo(Disposable);
+            NonLocalMeanSearchWindowSize.Subscribe( _ => { FilterFlag.Value = true; } );
 
             // ラプラシアンカーネルサイズの初期化
             LaplacianKsize = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.LaplacianKsize)

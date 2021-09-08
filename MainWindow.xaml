@@ -166,6 +166,24 @@
                   Minimum="0"
                   Maximum="240"
                   Value="{Binding NonLocalMeanHInt.Value}"/>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock  Text="TemplateWindowSize:" />
+            <TextBox  IsEnabled="{Binding SliderEnabled.Value}"
+                      Text="{Binding NonLocalMeanTempateWindowSize.Value}" />
+          </StackPanel>
+          <Slider IsEnabled="{Binding SliderEnabled.Value}"
+                  Minimum="0"
+                  Maximum="64"
+                  Value="{Binding NonLocalMeanTempateWindowSize.Value}"/>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock  Text="TemplateWindowSize:" />
+            <TextBox  IsEnabled="{Binding SliderEnabled.Value}"
+                      Text="{Binding NonLocalMeanSearchWindowSize.Value}" />
+          </StackPanel>
+          <Slider IsEnabled="{Binding SliderEnabled.Value}"
+                  Minimum="0"
+                  Maximum="64"
+                  Value="{Binding NonLocalMeanSearchWindowSize.Value}"/>
         </StackPanel>
       </Expander>
       <Expander Header="ラプラシアンフィルタ"

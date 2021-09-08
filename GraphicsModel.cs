@@ -287,6 +287,7 @@ namespace FilterGUI
                 }
             }
         }
+        // ノンローカルミーンフィルタテンプレートウィンドウサイズ
         private int _nonLocalMeanTempateWindowSize = 7;
         public int NonLocalMeanTempateWindowSize
         {
