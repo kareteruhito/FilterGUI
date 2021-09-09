@@ -232,7 +232,7 @@ namespace FilterGUI
             }
         }
         // バイラテラルフィルタDパラメタ
-        private int _bilateralFilterD = 3;
+        private int _bilateralFilterD = -1;
         public int BilateralFilterD
         {
             get { return _bilateralFilterD; }
@@ -315,22 +315,6 @@ namespace FilterGUI
                 }
             }
         }
-        /// <summary>
-        /// バイラテラルフィルタ
-        /// </summary>
-        /// <param name="mat">対象画像</param>
-        /// <param name="n">フィルタ実行回数</param>
-        /// <param name="d">ぼかす領域の広さ</param>
-        /// <param name="sigmaColor">色。20以下...小、150以上...大</param>
-        /// <param name="sigmaSpace">距離。20以下...小、150以上...大</param>
-        static private void BilateralFilter(ref Mat mat, int n, int d, double sigmaColor, double sigmaSpace)
-        {
-            for(var i=0; i < n; i++)
-            {
-                using Mat tmp = mat.Clone();
-                Cv2.BilateralFilter(tmp, mat, d, sigmaColor, sigmaSpace);
-            }
-        }
         // メディアンフィルタカーネルサイズ
         private int _medianKsize = 0;
         public int MedianKsize
@@ -369,8 +353,11 @@ namespace FilterGUI
             }
 
             // バイラテラルフィルタ
-            if (BilateralFilterN > 0)
-                BilateralFilter(ref mat, BilateralFilterN, BilateralFilterD, BilateralFilterColor, BilateralFilterSpace);
+            for(var i=0; i < BilateralFilterN; i++)
+            {
+                using Mat tmp = mat.Clone();
+                Cv2.BilateralFilter(tmp, mat, BilateralFilterD, BilateralFilterColor, BilateralFilterSpace);
+            }
 
             // ノンローカルミーンフィルタ
             if (NonLocalMeanH > 0f)
@@ -393,7 +380,7 @@ namespace FilterGUI
             // アンシャープマスキングフィルタ
             if (UnsharpMaskingK > 0)
                 UnSharpMasking(ref mat, UnsharpMaskingK);
-
+            
             // ガンマ補正
             if (GammaVol > 10 || GammaVol < -10)
                 GammaCorrection(ref mat, GammaVol);

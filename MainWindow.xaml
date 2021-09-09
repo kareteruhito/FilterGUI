@@ -132,7 +132,7 @@
                       Text="{Binding BilateralFilterD.Value}" />
           </StackPanel>
           <Slider IsEnabled="{Binding SliderEnabled.Value}"
-                  Minimum="0"
+                  Minimum="-1"
                   Maximum="32"
                   Value="{Binding BilateralFilterD.Value}"/>
           <StackPanel Orientation="Horizontal">
