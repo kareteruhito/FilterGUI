@@ -176,7 +176,7 @@
                   Maximum="64"
                   Value="{Binding NonLocalMeanTempateWindowSize.Value}"/>
           <StackPanel Orientation="Horizontal">
-            <TextBlock  Text="TemplateWindowSize:" />
+            <TextBlock  Text="SearchWindowSize:" />
             <TextBox  IsEnabled="{Binding SliderEnabled.Value}"
                       Text="{Binding NonLocalMeanSearchWindowSize.Value}" />
           </StackPanel>
