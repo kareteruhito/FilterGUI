@@ -269,7 +269,7 @@ namespace FilterGUI
 
                                 Image1.Value = await Task.Run(() => GraphicsModel.LoadBitmapSource(_filename));
                                 // フィルターの実行
-                                await FilterCommand.ExecuteAsync();
+                                Image2.Value = await Task.Run(() => _graphicsModel.OpenCVFilter(Image1.Value));
 
                                 var b = await Task.Run(() => GraphicsModel.SaveBitmapSource(Image2.Value, _filename));
                                 if (b)
