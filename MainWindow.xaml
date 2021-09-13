@@ -95,8 +95,6 @@
           </StackPanel>
           <Slider IsEnabled="{Binding SliderEnabled.Value}"
                   Value="{Binding BlurNumberOfTimes.Value}"
-                  SmallChange="1"
-                  LargeChange="10"
                   Minimum="0"
                   Maximum="128"/>
         </StackPanel>

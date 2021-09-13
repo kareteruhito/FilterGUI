@@ -177,7 +177,7 @@ namespace FilterGUI
                     {1.0/16.0,12.0/16.0,1.0/16.0},
                     {0.0/16.0, 1.0/16.0,0.0/16.0},
             };
-            
+
             for(int x=0; x<BlurNumberOfTimes; x++)
             {
                 Cv2.Filter2D(mat, mat, -1, InputArray.Create(kernel));
