@@ -173,9 +173,9 @@ namespace FilterGUI
         static private void OrignalBlur(ref Mat mat, int BlurNumberOfTimes=12)
         {
             double[,] kernel = {
-                    {0.0/16.0, 1.0/16.0,0.0/16.0},
-                    {1.0/16.0,12.0/16.0,1.0/16.0},
-                    {0.0/16.0, 1.0/16.0,0.0/16.0},
+                    {0.0/16.0, 2.0/16.0,0.0/16.0},
+                    {2.0/16.0, 8.0/16.0,2.0/16.0},
+                    {0.0/16.0, 2.0/16.0,0.0/16.0},
             };
 
             for(int x=0; x<BlurNumberOfTimes; x++)
@@ -194,7 +194,13 @@ namespace FilterGUI
                                  { -k/9.0, 1.0+8.0*k/9.0, -k/9.0},
                                  { -k/9.0,        -k/9.0, -k/9.0},
             };
-            Cv2.Filter2D(mat, mat, -1, InputArray.Create(kernel));
+
+            double[,] kernel2 = { { -1.0*k/16.0,        -2.0*k/16.0, -1.0*k/16.0},
+                                 {  -2.0*k/16.0,    1.0+12.0*k/16.0, -2.0*k/16.0},
+                                 {  -1.0*k/16.0,        -2.0*k/16.0, -1.0*k/16.0},
+            };
+
+            Cv2.Filter2D(mat, mat, -1, InputArray.Create(kernel2));
         }
 
         // ガンマ補正
