@@ -99,7 +99,8 @@
                   Maximum="128"/>
         </StackPanel>
       </Expander>
-      <Expander Header="メディアンフィルタ">
+      <Expander Header="メディアンフィルタ"
+                IsExpanded="False">
         <StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock  Text="カーネルサイズ(0.無効 or 奇数):" />

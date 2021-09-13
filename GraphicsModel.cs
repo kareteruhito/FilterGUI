@@ -18,7 +18,7 @@ namespace FilterGUI
         protected virtual void OnPropertyChanged(string name) => PropertyChanged(this, new PropertyChangedEventArgs(name));
 
         // ぼかし回数
-        private int _blurNumberOfTimes = 13;
+        private int _blurNumberOfTimes = 3;
         public int BlurNumberOfTimes
         {
             get { return _blurNumberOfTimes; }
@@ -47,7 +47,7 @@ namespace FilterGUI
             }
         }
         // アンシャープマスキングKパラメタ
-        private double _unsharpMaskingK = 1.5d;
+        private double _unsharpMaskingK = 2.5d;
         public double UnsharpMaskingK
         {
             get { return _unsharpMaskingK; }
@@ -62,7 +62,7 @@ namespace FilterGUI
         }
 
         // ガンマ補正値
-        private int _gammaVol = 0;
+        private int _gammaVol = 11;
         public int GammaVol
         {
             get { return _gammaVol; }
@@ -170,7 +170,7 @@ namespace FilterGUI
         /// </summary>
         /// <param name="mat">対象画像</param>
         /// <param name="BlurNumberOfTimes">フィルター回数</param>
-        static private void OrignalBlur(ref Mat mat, int BlurNumberOfTimes=12)
+        static private void OrignalBlur(ref Mat mat, int BlurNumberOfTimes=0)
         {
             double[,] kernel = {
                     {0.0/16.0, 2.0/16.0,0.0/16.0},
@@ -204,7 +204,7 @@ namespace FilterGUI
         }
 
         // ガンマ補正
-        static private void GammaCorrection(ref Mat src, int GammaVal=10)
+        static private void GammaCorrection(ref Mat src, int GammaVal=11)
         {
             var x = new int[256];
             for(var i = 0; i < x.Length; i++) x[i] = i;
@@ -224,7 +224,7 @@ namespace FilterGUI
             
         }
         // バイラテラルフィルタ実行回数
-        private int _bilateralFilterN = 0;
+        private int _bilateralFilterN = 1;
         public int BilateralFilterN
         {
             get { return _bilateralFilterN; }
@@ -238,7 +238,7 @@ namespace FilterGUI
             }
         }
         // バイラテラルフィルタDパラメタ
-        private int _bilateralFilterD = -1;
+        private int _bilateralFilterD = 3;
         public int BilateralFilterD
         {
             get { return _bilateralFilterD; }
@@ -280,7 +280,7 @@ namespace FilterGUI
             }
         }
         // ノンローカルミーンフィルタHパラメタ
-        private float _nonLocalMeanH = 3.0f;
+        private float _nonLocalMeanH = 12.0f;
         public float NonLocalMeanH
         {
             get { return _nonLocalMeanH; }
