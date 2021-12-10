@@ -99,59 +99,17 @@
                   Maximum="128"/>
         </StackPanel>
       </Expander>
-      <Expander Header="メディアンフィルタ"
-                IsExpanded="False">
-        <StackPanel>
-          <StackPanel Orientation="Horizontal">
-            <TextBlock  Text="カーネルサイズ(0.無効 or 奇数):" />
-            <TextBox  IsEnabled="{Binding SliderEnabled.Value}"
-                      Text="{Binding MedianKsize.Value}" />
-          </StackPanel>
-          <Slider IsEnabled="{Binding SliderEnabled.Value}"
-                  Value="{Binding MedianKsize.Value}"
-                  Minimum="0"
-                  Maximum="15"/>
-        </StackPanel>
-      </Expander>
-      <Expander Header="バイラテラルフィルタフィルタ"
-                IsExpanded="False">
+      <Expander Header="ガウシアンフィルタ">
         <StackPanel>
           <StackPanel Orientation="Horizontal">
             <TextBlock  Text="回数:" />
             <TextBox  IsEnabled="{Binding SliderEnabled.Value}"
-                      Text="{Binding BilateralFilterN.Value}" />
+                      Text="{Binding GBlurNumberOfTimes.Value}" />
           </StackPanel>
           <Slider IsEnabled="{Binding SliderEnabled.Value}"
+                  Value="{Binding GBlurNumberOfTimes.Value}"
                   Minimum="0"
-                  Maximum="32"
-                  Value="{Binding BilateralFilterN.Value}"/>
-          <StackPanel Orientation="Horizontal">
-            <TextBlock  Text="ぼかし領域の広さD:" />
-            <TextBox  IsEnabled="{Binding SliderEnabled.Value}"
-                      Text="{Binding BilateralFilterD.Value}" />
-          </StackPanel>
-          <Slider IsEnabled="{Binding SliderEnabled.Value}"
-                  Minimum="-1"
-                  Maximum="32"
-                  Value="{Binding BilateralFilterD.Value}"/>
-          <StackPanel Orientation="Horizontal">
-            <TextBlock  Text="色:" />
-            <TextBox  IsEnabled="{Binding SliderEnabled.Value}"
-                      Text="{Binding BilateralFilterColor.Value}" />
-          </StackPanel>
-          <Slider IsEnabled="{Binding SliderEnabled.Value}"
-                  Minimum="0"
-                  Maximum="255"
-                  Value="{Binding BilateralFilterColor.Value}"/>
-          <StackPanel Orientation="Horizontal">
-            <TextBlock  Text="距離:" />
-            <TextBox  IsEnabled="{Binding SliderEnabled.Value}"
-                      Text="{Binding BilateralFilterSpace.Value}" />
-          </StackPanel>
-          <Slider IsEnabled="{Binding SliderEnabled.Value}"
-                  Minimum="0"
-                  Maximum="255"
-                  Value="{Binding BilateralFilterSpace.Value}"/>
+                  Maximum="128"/>
         </StackPanel>
       </Expander>
       <Expander Header="ノンローカルミーンフィルタ">
@@ -165,39 +123,6 @@
                   Minimum="0"
                   Maximum="240"
                   Value="{Binding NonLocalMeanHInt.Value}"/>
-          <StackPanel Orientation="Horizontal">
-            <TextBlock  Text="TemplateWindowSize:" />
-            <TextBox  IsEnabled="{Binding SliderEnabled.Value}"
-                      Text="{Binding NonLocalMeanTempateWindowSize.Value}" />
-          </StackPanel>
-          <Slider IsEnabled="{Binding SliderEnabled.Value}"
-                  Minimum="0"
-                  Maximum="64"
-                  Value="{Binding NonLocalMeanTempateWindowSize.Value}"/>
-          <StackPanel Orientation="Horizontal">
-            <TextBlock  Text="SearchWindowSize:" />
-            <TextBox  IsEnabled="{Binding SliderEnabled.Value}"
-                      Text="{Binding NonLocalMeanSearchWindowSize.Value}" />
-          </StackPanel>
-          <Slider IsEnabled="{Binding SliderEnabled.Value}"
-                  Minimum="0"
-                  Maximum="64"
-                  Value="{Binding NonLocalMeanSearchWindowSize.Value}"/>
-        </StackPanel>
-      </Expander>
-      <Expander Header="ラプラシアンフィルタ"
-                IsExpanded="False">
-        <StackPanel>
-          <StackPanel Orientation=" Horizontal">
-            <TextBlock  Text="ksize:" />
-            <TextBox  IsEnabled="{Binding SliderEnabled.Value}"
-                      Text="{Binding LaplacianKsize.Value}" />
-          </StackPanel>
-          <Slider IsEnabled="{Binding SliderEnabled.Value}"
-                  SmallChange="1"
-                  LargeChange="1"
-                  Maximum="9"
-                  Value="{Binding LaplacianKsize.Value}"/>
         </StackPanel>
       </Expander>
       <Expander Header="アンシャープマスキングフィルタ">
@@ -212,21 +137,6 @@
                   LargeChange="10"
                   Maximum="150"
                   Value="{Binding UnsharpMaskingKInt.Value}" />
-        </StackPanel>
-      </Expander>
-      <Expander Header="ガンマ補正">
-        <StackPanel>
-          <StackPanel Orientation=" Horizontal">
-            <TextBlock  Text="ksize:" />
-            <TextBox  IsEnabled="{Binding SliderEnabled.Value}"
-                      Text="{Binding GammaVol.Value}" />
-          </StackPanel>
-          <Slider IsEnabled="{Binding SliderEnabled.Value}"
-                  SmallChange="1"
-                  LargeChange="5"
-                  Minimum="-40"
-                  Maximum="40"
-                  Value="{Binding GammaVol.Value}"/>
         </StackPanel>
       </Expander>
       <Button Command="{Binding FilterCommand}"

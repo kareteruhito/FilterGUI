@@ -43,32 +43,16 @@ namespace FilterGUI
 
         // ぼかし回数
         public ReactiveProperty<int> BlurNumberOfTimes { get; }
+        // ガウシアンフィルタぼかし回数
+        public ReactiveProperty<int> GBlurNumberOfTimes { get; }
         // ノンローカルミーンフィルタHパラメタ
         public ReactiveProperty<float> NonLocalMeanH { get; }
         // ノンローカルミーンフィルタHパラメタ(スライダー用)
         public ReactiveProperty<int> NonLocalMeanHInt { get; }
-        // ノンローカルミーンフィルタテンプレートウィンドウサイズ
-        public ReactiveProperty<int> NonLocalMeanTempateWindowSize { get; }
-        // ノンローカルミーンフィルタサーチウィンドウサイズ
-        public ReactiveProperty<int> NonLocalMeanSearchWindowSize { get; }
-        // ラプラシアンフィルタカーネルサイズ
-        public ReactiveProperty<int> LaplacianKsize { get; }
         // アンシャープマスキングフィルタKパラメタ
         public ReactiveProperty<double> UnsharpMaskingK { get; }
         // アンシャープマスキングフィルタKパラメタ(スライダー用)
         public ReactiveProperty<int> UnsharpMaskingKInt { get; }
-        // ガンマ補正値
-        public ReactiveProperty<int> GammaVol { get; }
-        // バイラテラルフィルタ実行回数
-        public ReactiveProperty<int> BilateralFilterN { get; }
-        // バイラテラルフィルタDパラメタ
-        public ReactiveProperty<int> BilateralFilterD { get; }
-        // バイラテラルフィルタ色パラメタ
-        public ReactiveProperty<int> BilateralFilterColor { get; }
-        // バイラテラルフィルタ距離パラメタ
-        public ReactiveProperty<int> BilateralFilterSpace { get; }
-        // メディアンフィルターのカーネルサイズ
-        public ReactiveProperty<int> MedianKsize { get; }
 
         // ドロップコマンド
         public AsyncReactiveCommand<DragEventArgs> DropCommand { get; }
@@ -156,6 +140,11 @@ namespace FilterGUI
                 .AddTo(Disposable);
             BlurNumberOfTimes.Subscribe(_ => {FilterFlag.Value = true;});
 
+            // ガウシアンフィルタぼかし回数の初期化
+            GBlurNumberOfTimes = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.GBlurNumberOfTimes)
+                .AddTo(Disposable);
+            GBlurNumberOfTimes.Subscribe(_ => {FilterFlag.Value = true;});
+
             //ノンローカルミーンフィルタHパラメタの初期化
             NonLocalMeanH = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.NonLocalMeanH)
                 .AddTo(Disposable);
@@ -175,19 +164,7 @@ namespace FilterGUI
                 if (NonLocalMeanH.Value != floatValue)
                     NonLocalMeanH.Value = floatValue;
             });
-            // ノンローカルミーンフィルタテンプレートウィンドウサイズの初期化
-            NonLocalMeanTempateWindowSize = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.NonLocalMeanTempateWindowSize)
-                .AddTo(Disposable);
-            NonLocalMeanTempateWindowSize.Subscribe( _ => { FilterFlag.Value = true; } );
-            // ノンローカルミーンフィルタサーチウィンドウサイズの初期化
-            NonLocalMeanSearchWindowSize = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.NonLocalMeanSearchWindowSize)
-                .AddTo(Disposable);
-            NonLocalMeanSearchWindowSize.Subscribe( _ => { FilterFlag.Value = true; } );
 
-            // ラプラシアンカーネルサイズの初期化
-            LaplacianKsize = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.LaplacianKsize)
-                .AddTo(Disposable);
-            LaplacianKsize.Subscribe(_ => {FilterFlag.Value = true;});
 
             // アンシャープマスキングフィルタKパラメタの初期化
             UnsharpMaskingK = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.UnsharpMaskingK)
@@ -209,35 +186,6 @@ namespace FilterGUI
                     UnsharpMaskingK.Value = doubleValue;
             });
 
-            // ガンマ補正値の初期化
-            GammaVol = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.GammaVol)
-                .AddTo(Disposable);
-            GammaVol.Subscribe(_ => {FilterFlag.Value = true;});
-
-            // バイラテラルフィルタ実行回数の初期化
-            BilateralFilterN = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.BilateralFilterN)
-                .AddTo(Disposable);
-            BilateralFilterN.Subscribe(_ => {FilterFlag.Value = true;});
-
-            // バイラテラルフィルタDパラメタの初期化
-            BilateralFilterD = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.BilateralFilterD)
-                .AddTo(Disposable);
-            BilateralFilterD.Subscribe(_ => {FilterFlag.Value = true;});
-
-            // バイラテラルフィルタ色パラメタ
-            BilateralFilterColor = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.BilateralFilterColor)
-                .AddTo(Disposable);
-            BilateralFilterColor.Subscribe(_ => {FilterFlag.Value = true;});
-
-            // バイラテラルフィルタ距離パラメタ
-            BilateralFilterSpace = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.BilateralFilterSpace)
-                .AddTo(Disposable);
-            BilateralFilterSpace.Subscribe(_ => {FilterFlag.Value = true;});
-
-            // メディアンフィルターカーネルサイズの初期化
-            MedianKsize = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.MedianKsize)
-                .AddTo(Disposable);
-            MedianKsize.Subscribe( _ => { FilterFlag.Value = true; } );
 
             // ドロップコマンドを初期化
             DropCommand = SliderEnabled
