@@ -86,6 +86,19 @@
                   Value="{Binding ZoomScale.Value}"/>
         </StackPanel>
       </Expander>
+      <Expander Header="メディアンフィルター">
+        <StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock  Text="Ksize:" />
+            <TextBox  IsEnabled="{Binding SliderEnabled.Value}"
+                      Text="{Binding MedianKsize.Value}" />
+          </StackPanel>
+          <Slider IsEnabled="{Binding SliderEnabled.Value}"
+                  Value="{Binding MedianKsize.Value}"
+                  Minimum="0"
+                  Maximum="128"/>
+        </StackPanel>
+      </Expander>
       <Expander Header="ぼかし処理">
         <StackPanel>
           <StackPanel Orientation="Horizontal">
@@ -137,6 +150,19 @@
                   LargeChange="10"
                   Maximum="150"
                   Value="{Binding UnsharpMaskingKInt.Value}" />
+        </StackPanel>
+      </Expander>
+      <Expander Header="ノンローカルミーンフィルタ2">
+        <StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock  Text="h:" />
+            <TextBox  IsEnabled="{Binding SliderEnabled.Value}"
+                      Text="{Binding NonLocalMeanH2.Value}" />
+          </StackPanel>
+          <Slider IsEnabled="{Binding SliderEnabled.Value}"
+                  Minimum="0"
+                  Maximum="240"
+                  Value="{Binding NonLocalMeanHInt2.Value}"/>
         </StackPanel>
       </Expander>
       <Button Command="{Binding FilterCommand}"

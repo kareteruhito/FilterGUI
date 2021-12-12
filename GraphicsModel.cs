@@ -205,6 +205,37 @@ namespace FilterGUI
             }
         }
 
+        // メディアンフィルター
+        private int _medianKsize = 0;
+
+        public int MedianKsize
+        {
+            get { return _medianKsize; }
+            set
+            {
+                if (_medianKsize != value)
+                {
+                    _medianKsize = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MedianKsize)));
+                }
+            }
+        }
+
+        // ノンローカルミーンフィルタH2パラメタ
+        private float _nonLocalMeanH2 = 6.0f;
+        public float NonLocalMeanH2
+        {
+            get { return _nonLocalMeanH2; }
+            set
+            {
+                if (_nonLocalMeanH2 != value)
+                {
+                    _nonLocalMeanH2 = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NonLocalMeanH2)));
+                }
+            }
+        }
+
         /// <summary>
         /// 画像フィルターを実行
         /// </summary>
@@ -214,6 +245,16 @@ namespace FilterGUI
         {
             var mat = BitmapSourceConverter.ToMat(src);
             Cv2.CvtColor(mat, mat, ColorConversionCodes.BGRA2GRAY);
+
+            // メディアンフィルター
+            if (MedianKsize > 0)
+            {
+                if (MedianKsize % 2 == 0)
+                {
+                    MedianKsize = MedianKsize + 1;
+                }
+                Cv2.MedianBlur(mat, mat, MedianKsize);
+            }
 
             // ぼかし処理
             if (BlurNumberOfTimes > 0)
@@ -240,9 +281,9 @@ namespace FilterGUI
                 UnSharpMasking(ref mat, UnsharpMaskingK);
             
             // ノンローカルミーンフィルタ
-            if (NonLocalMeanH > 0f)
+            if (NonLocalMeanH2 > 0f)
             {
-                Cv2.FastNlMeansDenoising(mat, mat, NonLocalMeanH);
+                Cv2.FastNlMeansDenoising(mat, mat, NonLocalMeanH2);
             }
 
             var dst = BitmapSourceConverter.ToBitmapSource(mat);

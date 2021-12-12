@@ -41,6 +41,8 @@ namespace FilterGUI
         // スライドバーの有効フラグ
         public ReactiveProperty<bool> SliderEnabled {get; private set;} = new(false);
 
+        // メディアンフィルターKsize
+        public ReactiveProperty<int> MedianKsize { get; }
         // ぼかし回数
         public ReactiveProperty<int> BlurNumberOfTimes { get; }
         // ガウシアンフィルタぼかし回数
@@ -49,6 +51,10 @@ namespace FilterGUI
         public ReactiveProperty<float> NonLocalMeanH { get; }
         // ノンローカルミーンフィルタHパラメタ(スライダー用)
         public ReactiveProperty<int> NonLocalMeanHInt { get; }
+        // ノンローカルミーンフィルタHパラメタ
+        public ReactiveProperty<float> NonLocalMeanH2 { get; }
+        // ノンローカルミーンフィルタHパラメタ(スライダー用)
+        public ReactiveProperty<int> NonLocalMeanHInt2 { get; }
         // アンシャープマスキングフィルタKパラメタ
         public ReactiveProperty<double> UnsharpMaskingK { get; }
         // アンシャープマスキングフィルタKパラメタ(スライダー用)
@@ -135,6 +141,11 @@ namespace FilterGUI
             Image2.AddTo(Disposable);
             Image2Visibility.AddTo(Disposable);
 
+            // メディアンフィルターksizeの初期化
+            MedianKsize = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.MedianKsize)
+                .AddTo(Disposable);
+            MedianKsize.Subscribe(_ => {FilterFlag.Value = true;});
+
             // ぼかし回数の初期化
             BlurNumberOfTimes = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.BlurNumberOfTimes)
                 .AddTo(Disposable);
@@ -153,7 +164,10 @@ namespace FilterGUI
                 if (NonLocalMeanHInt == null) return;
                 var intValue = (int)(x * 10f);
                 if (NonLocalMeanHInt.Value != intValue)
+                {
                     NonLocalMeanHInt.Value = intValue;
+                    NonLocalMeanHInt2.Value = intValue;
+                }
             });
             NonLocalMeanHInt = new ReactiveProperty<int>((int)(NonLocalMeanH.Value * 10f))
                 .AddTo(Disposable);
@@ -162,9 +176,31 @@ namespace FilterGUI
                 if (NonLocalMeanH == null) return;
                 var floatValue = (float)x / 10f;
                 if (NonLocalMeanH.Value != floatValue)
+                {
                     NonLocalMeanH.Value = floatValue;
+                    NonLocalMeanH2.Value = floatValue;
+                }
             });
 
+            //ノンローカルミーンフィルタH2パラメタの初期化
+            NonLocalMeanH2 = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.NonLocalMeanH2)
+                .AddTo(Disposable);
+            NonLocalMeanH2.Subscribe( x => {
+                FilterFlag.Value = true;
+                if (NonLocalMeanHInt2 == null) return;
+                var intValue = (int)(x * 10f);
+                if (NonLocalMeanHInt2.Value != intValue)
+                    NonLocalMeanHInt2.Value = intValue;
+            });
+            NonLocalMeanHInt2 = new ReactiveProperty<int>((int)(NonLocalMeanH2.Value * 10f))
+                .AddTo(Disposable);
+            NonLocalMeanHInt2.Subscribe( x => {
+                FilterFlag.Value = true;
+                if (NonLocalMeanH2 == null) return;
+                var floatValue = (float)x / 10f;
+                if (NonLocalMeanH2.Value != floatValue)
+                    NonLocalMeanH2.Value = floatValue;
+            });
 
             // アンシャープマスキングフィルタKパラメタの初期化
             UnsharpMaskingK = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.UnsharpMaskingK)
