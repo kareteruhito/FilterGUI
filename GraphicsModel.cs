@@ -236,6 +236,48 @@ namespace FilterGUI
             }
         }
 
+        // ガンマ補正パラメタ
+        private double _gamma = 0.50f;
+        public double Gamma
+        {
+            get { return _gamma; }
+            set
+            {
+                if (_gamma != value)
+                {
+                    _gamma = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Gamma)));
+                }
+            }
+        }
+
+        // ガンマ補正2パラメタ
+        private double _gamma2 = 2.00f;
+        public double Gamma2
+        {
+            get { return _gamma2; }
+            set
+            {
+                if (_gamma2 != value)
+                {
+                    _gamma2 = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Gamma2)));
+                }
+            }
+        }
+
+        // ガンマ補正
+        static private void GammaCustom(ref Mat mat, double gamma=8.0d)
+        {
+            var lut = new byte[256];
+
+            for(var i = 0; i < 256; i += 1)
+            {
+                lut[i] = (byte)(System.Math.Pow((double)(i / 255.0d), 1.0d / gamma) * 255.0d);
+            }
+            Cv2.LUT(mat, lut, mat);
+        }
+
         /// <summary>
         /// 画像フィルターを実行
         /// </summary>
@@ -270,6 +312,12 @@ namespace FilterGUI
                 }
             }
 
+            // ガンマ補正
+            if (Gamma != 0.0f)
+            {
+                GammaCustom(ref mat, Gamma);
+            }
+
             // ノンローカルミーンフィルタ
             if (NonLocalMeanH > 0f)
             {
@@ -284,6 +332,12 @@ namespace FilterGUI
             if (NonLocalMeanH2 > 0f)
             {
                 Cv2.FastNlMeansDenoising(mat, mat, NonLocalMeanH2);
+            }
+
+            // ガンマ補正2
+            if (Gamma2 != 0.0f)
+            {
+                GammaCustom(ref mat, Gamma2);
             }
 
             var dst = BitmapSourceConverter.ToBitmapSource(mat);

@@ -59,6 +59,14 @@ namespace FilterGUI
         public ReactiveProperty<double> UnsharpMaskingK { get; }
         // アンシャープマスキングフィルタKパラメタ(スライダー用)
         public ReactiveProperty<int> UnsharpMaskingKInt { get; }
+        // ガンマ補正パラメタ(スライダー用)
+        public ReactiveProperty<int> GammaInt { get; }
+        // ガンマ補正パラメタ
+        public ReactiveProperty<double> Gamma { get; }
+        // ガンマ補正2パラメタ(スライダー用)
+        public ReactiveProperty<int> GammaInt2 { get; }
+        // ガンマ補正2パラメタ
+        public ReactiveProperty<double> Gamma2 { get; }
 
         // ドロップコマンド
         public AsyncReactiveCommand<DragEventArgs> DropCommand { get; }
@@ -222,6 +230,106 @@ namespace FilterGUI
                     UnsharpMaskingK.Value = doubleValue;
             });
 
+            // ガンマ補正パラメタの初期化
+            Gamma = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.Gamma)
+                .AddTo(Disposable);
+            Gamma.Subscribe( x => {
+                FilterFlag.Value = true;
+                if (GammaInt == null) return;
+                //var intValue = (int)(x*10d);
+                var intValue = 0;
+                if (x == 3.0d) intValue = 3;
+                if (x == 2.0d) intValue = 2;
+                if (x == 1.5d) intValue = 1;
+                if (x == 0.0d) intValue = 0;
+                if (x == 0.66d) intValue = -1;
+                if (x == 0.5d) intValue = -2;
+                if (x == 0.33d) intValue = -3;
+
+                if (GammaInt.Value != intValue)
+                    GammaInt.Value = intValue;
+            });
+            GammaInt = new ReactiveProperty<int>((int)(Gamma.Value * 10d))
+                .AddTo(Disposable);
+            GammaInt.Subscribe( x => {
+                FilterFlag.Value = true;
+                if (Gamma == null) return;
+                //var doubleValue = (double)x / 10d;
+                var doubleValue = 0.0d;
+                var doubleValue2 = 0.0d;
+                if (x == 3) {
+                    doubleValue = 3.0d;
+                    doubleValue2 = 0.33d;
+                }
+                if (x == 2){
+                    doubleValue = 2.0d;
+                    doubleValue2 = 0.5d;
+                }
+                if (x == 1) {
+                    doubleValue = 1.5d;
+                    doubleValue2 = 0.66d;
+                }
+                if (x == 0){
+                    doubleValue = 0.0d;
+                    doubleValue2 = 0.0d;
+                }
+                if (x == -1){
+                    doubleValue = 0.66d;
+                    doubleValue2 = 1.5d;
+                }
+                if (x == -2){
+                    doubleValue = 0.5d;
+                    doubleValue2 = 2.0d;
+                }
+                if (x == -3){
+                    doubleValue = 0.33d;
+                    doubleValue2 = 3.00d;
+                }
+
+                if (Gamma.Value != doubleValue)
+                    Gamma.Value = doubleValue;
+                if (Gamma2 == null) return;
+                if (Gamma2.Value != doubleValue2)
+                    Gamma2.Value = doubleValue2;
+            });
+
+            // ガンマ補正2パラメタの初期化
+            Gamma2 = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.Gamma2)
+                .AddTo(Disposable);
+            Gamma2.Subscribe( x => {
+                FilterFlag.Value = true;
+                if (GammaInt2 == null) return;
+                //var intValue = (int)(x*10d);
+                var intValue = 0;
+                if (x == 3.0d) intValue = 3;
+                if (x == 2.0d) intValue = 2;
+                if (x == 1.5d) intValue = 1;
+                if (x == 0.0d) intValue = 0;
+                if (x == 0.66d) intValue = -1;
+                if (x == 0.5d) intValue = -2;
+                if (x == 0.33d) intValue = -3;
+
+                if (GammaInt2.Value != intValue)
+                    GammaInt2.Value = intValue;
+            });
+            GammaInt2 = new ReactiveProperty<int>((int)(Gamma2.Value * 10d))
+                .AddTo(Disposable);
+            GammaInt2.Subscribe( x => {
+                FilterFlag.Value = true;
+                if (Gamma2 == null) return;
+                //var doubleValue = (double)x / 10d;
+                var doubleValue = 0.0d;
+                if (x == 3) doubleValue = 3.0d;
+                if (x == 2) doubleValue = 2.0d;
+                if (x == 1) doubleValue = 1.5d;
+                if (x == 0) doubleValue = 0.0d;
+                if (x == -1) doubleValue = 0.66d;
+                if (x == -2) doubleValue = 0.5d;
+                if (x == -3) doubleValue = 0.33d;
+
+                if (Gamma2.Value != doubleValue)
+                    Gamma2.Value = doubleValue;
+            });
 
             // ドロップコマンドを初期化
             DropCommand = SliderEnabled

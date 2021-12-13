@@ -125,6 +125,19 @@
                   Maximum="128"/>
         </StackPanel>
       </Expander>
+      <Expander Header="ガンマ補正">
+        <StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock  Text="Gamma:" />
+            <TextBox  IsEnabled="{Binding SliderEnabled.Value}"
+                      Text="{Binding Gamma.Value}" />
+          </StackPanel>
+          <Slider IsEnabled="{Binding SliderEnabled.Value}"
+                  Minimum="-3"
+                  Maximum="3"
+                  Value="{Binding GammaInt.Value}"/>
+        </StackPanel>
+      </Expander>
       <Expander Header="ノンローカルミーンフィルタ">
         <StackPanel>
           <StackPanel Orientation="Horizontal">
@@ -163,6 +176,19 @@
                   Minimum="0"
                   Maximum="240"
                   Value="{Binding NonLocalMeanHInt2.Value}"/>
+        </StackPanel>
+      </Expander>
+      <Expander Header="ガンマ補正2">
+        <StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock  Text="Gamma:" />
+            <TextBox  IsEnabled="{Binding SliderEnabled.Value}"
+                      Text="{Binding Gamma2.Value}" />
+          </StackPanel>
+          <Slider IsEnabled="{Binding SliderEnabled.Value}"
+                  Minimum="-3"
+                  Maximum="3"
+                  Value="{Binding GammaInt2.Value}"/>
         </StackPanel>
       </Expander>
       <Button Command="{Binding FilterCommand}"
