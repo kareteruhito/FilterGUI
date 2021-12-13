@@ -67,10 +67,18 @@
         </Image>
       </Canvas>
     </ScrollViewer>
-    <StackPanel Grid.Column="1">
+    <StackPanel Grid.Column="1" AllowDrop="True" >
+      <i:Interaction.Behaviors>
+          <local:DragOverBehavior />
+      </i:Interaction.Behaviors>
+      <i:Interaction.Triggers>
+          <i:EventTrigger EventName="Drop">
+              <interactivity:EventToReactiveCommand Command="{Binding DropCommand}" />
+          </i:EventTrigger>
+      </i:Interaction.Triggers>
       <ToggleButton Content="{Binding FilterOnOffText.Value}"
                     Command="{Binding FilterOnOffCommand}"
-                    Margin="5" />
+                    Margin="5"/>
       <Button Command="{Binding SaveCommand}"
               Content="保存"
               Margin="5" />

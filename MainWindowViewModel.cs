@@ -346,6 +346,7 @@ namespace FilterGUI
                         var files = args.Where(e => exts.Contains(Path.GetExtension(e).ToUpper()));
                         if (files.Any() == false) return;
 
+/*
                         if (files.Count() == 1)
                         {
                             _filename = files.First();
@@ -354,22 +355,25 @@ namespace FilterGUI
                         }
                         else
                         {
-                            var i = 0;
-                            foreach(var file in files)
+*/
+                        var i = 0;
+                        foreach(var file in files)
+                        {
+                            _filename = file;
+
+                            Image1.Value = await Task.Run(() => GraphicsModel.LoadBitmapSource(_filename));
+                            // フィルターの実行
+                            Image2.Value = await Task.Run(() => _graphicsModel.OpenCVFilter(Image1.Value));
+
+                            var b = await Task.Run(() => GraphicsModel.SaveBitmapSource(Image2.Value, _filename));
+                            if (b)
                             {
-                                _filename = file;
-
-                                Image1.Value = await Task.Run(() => GraphicsModel.LoadBitmapSource(_filename));
-                                // フィルターの実行
-                                Image2.Value = await Task.Run(() => _graphicsModel.OpenCVFilter(Image1.Value));
-
-                                var b = await Task.Run(() => GraphicsModel.SaveBitmapSource(Image2.Value, _filename));
-                                if (b)
-                                {
-                                    Title.Value = String.Format("{0}/{1} {2}",++i,files.Count(), Path.GetFileName(file));
-                                }
+                                Title.Value = String.Format("{0}/{1} {2}",++i,files.Count(), Path.GetFileName(file));
                             }
                         }
+/*
+                        }//if
+*/
                     }
                 )
                 .AddTo(Disposable);
@@ -408,14 +412,14 @@ namespace FilterGUI
                 .ToAsyncReactiveCommand()
                 .WithSubscribe(
                     async () => {
-                        SliderEnabled.Value = false;
+                        //SliderEnabled.Value = false;
                         var dst = Image2.Value;
                         var b = await Task.Run(() => GraphicsModel.SaveBitmapSource(dst, _filename));
                         if (b)
                         {
                             Title.Value = String.Format("Save Success:{0}", Path.GetFileName(_filename));
                         }
-                        SliderEnabled.Value = false;
+                        //SliderEnabled.Value = false;
                     }
                 )
                 .AddTo(Disposable);
