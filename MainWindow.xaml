@@ -199,6 +199,19 @@
                   Value="{Binding GammaInt2.Value}"/>
         </StackPanel>
       </Expander>
+      <Expander Header="合成割合">
+        <StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock  Text="Alpha:" />
+            <TextBox  IsEnabled="{Binding SliderEnabled.Value}"
+                      Text="{Binding AddWeightedAlpha.Value}" />
+          </StackPanel>
+          <Slider IsEnabled="{Binding SliderEnabled.Value}"
+                  Minimum="0"
+                  Maximum="10"
+                  Value="{Binding AddWeightedAlphaInt.Value}"/>
+        </StackPanel>
+      </Expander>
       <Button Command="{Binding FilterCommand}"
               Content="フィルター"
               Margin="5" />

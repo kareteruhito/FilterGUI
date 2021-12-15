@@ -67,6 +67,10 @@ namespace FilterGUI
         public ReactiveProperty<int> GammaInt2 { get; }
         // ガンマ補正2パラメタ
         public ReactiveProperty<double> Gamma2 { get; }
+        // 合成割合パラメタ
+        public ReactiveProperty<double> AddWeightedAlpha { get; }
+        // 合成割合パラメタ(スライダー用)
+        public ReactiveProperty<int> AddWeightedAlphaInt { get; }
 
         // ドロップコマンド
         public AsyncReactiveCommand<DragEventArgs> DropCommand { get; }
@@ -329,6 +333,28 @@ namespace FilterGUI
 
                 if (Gamma2.Value != doubleValue)
                     Gamma2.Value = doubleValue;
+            });
+
+            // 合成割合パラメタの初期化
+            AddWeightedAlpha = _graphicsModel.ToReactivePropertyAsSynchronized(m => m.AddWeightedAlpha)
+                .AddTo(Disposable);
+            AddWeightedAlpha.Subscribe( x => {
+                FilterFlag.Value = true;
+                if (AddWeightedAlphaInt == null) return;
+                var intValue = (int)(x*10d);
+
+                if (AddWeightedAlphaInt.Value != intValue)
+                    AddWeightedAlphaInt.Value = intValue;
+            });
+            AddWeightedAlphaInt = new ReactiveProperty<int>((int)(AddWeightedAlpha.Value * 10d))
+                .AddTo(Disposable);
+            AddWeightedAlphaInt.Subscribe( x => {
+                FilterFlag.Value = true;
+                if (AddWeightedAlpha == null) return;
+                var doubleValue = (double)x / 10d;
+
+                if (AddWeightedAlpha.Value != doubleValue)
+                    AddWeightedAlpha.Value = doubleValue;
             });
 
             // ドロップコマンドを初期化

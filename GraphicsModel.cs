@@ -237,7 +237,7 @@ namespace FilterGUI
         }
 
         // ガンマ補正パラメタ
-        private double _gamma = 0.50f;
+        private double _gamma = 0.50d;
         public double Gamma
         {
             get { return _gamma; }
@@ -252,7 +252,7 @@ namespace FilterGUI
         }
 
         // ガンマ補正2パラメタ
-        private double _gamma2 = 2.00f;
+        private double _gamma2 = 2.00d;
         public double Gamma2
         {
             get { return _gamma2; }
@@ -276,6 +276,21 @@ namespace FilterGUI
                 lut[i] = (byte)(System.Math.Pow((double)(i / 255.0d), 1.0d / gamma) * 255.0d);
             }
             Cv2.LUT(mat, lut, mat);
+        }
+
+        // 合成割合
+        private double _addWeightedAlpha = 1.0d;
+        public double AddWeightedAlpha
+        {
+            get { return _addWeightedAlpha; }
+            set
+            {
+                if (_addWeightedAlpha != value)
+                {
+                    _addWeightedAlpha = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(AddWeightedAlpha)));
+                }
+            }
         }
 
         /// <summary>
@@ -312,14 +327,16 @@ namespace FilterGUI
                 }
             }
 
+            var betaMat = mat.Clone();            
+
             // ガンマ補正
-            if (Gamma != 0.0f)
+            if (Gamma != 0.0d)
             {
                 GammaCustom(ref mat, Gamma);
             }
 
             // ノンローカルミーンフィルタ
-            if (NonLocalMeanH > 0f)
+            if (NonLocalMeanH > 0.0d)
             {
                 Cv2.FastNlMeansDenoising(mat, mat, NonLocalMeanH);
             }
@@ -329,21 +346,58 @@ namespace FilterGUI
                 UnSharpMasking(ref mat, UnsharpMaskingK);
             
             // ノンローカルミーンフィルタ
-            if (NonLocalMeanH2 > 0f)
+            if (NonLocalMeanH2 > 0.0d)
             {
                 Cv2.FastNlMeansDenoising(mat, mat, NonLocalMeanH2);
             }
 
             // ガンマ補正2
-            if (Gamma2 != 0.0f)
+            if (Gamma2 != 0.0d)
             {
                 GammaCustom(ref mat, Gamma2);
             }
+
+            // Gammaのパラメタを反転画像と合成
+            if (AddWeightedAlpha < 1.0d)
+            {
+                // ガンマ補正2
+                if (Gamma2 != 0.0d)
+                {
+                    GammaCustom(ref betaMat, Gamma2);
+                }
+
+                // ノンローカルミーンフィルタ
+                if (NonLocalMeanH > 0.0d)
+                {
+                    Cv2.FastNlMeansDenoising(betaMat, betaMat, NonLocalMeanH);
+                }
+
+                // アンシャープマスキングフィルタ
+                if (UnsharpMaskingK > 0)
+                    UnSharpMasking(ref betaMat, UnsharpMaskingK);
+                
+                // ノンローカルミーンフィルタ
+                if (NonLocalMeanH2 > 0.0d)
+                {
+                    Cv2.FastNlMeansDenoising(betaMat, betaMat, NonLocalMeanH2);
+                }
+
+                // ガンマ補正
+                if (Gamma != 0.0d)
+                {
+                    GammaCustom(ref betaMat, Gamma);
+                }
+
+                // 合成
+                Cv2.AddWeighted(mat, AddWeightedAlpha, betaMat, (1.0d - AddWeightedAlpha), 0.0d, mat, -1);
+            }
+
 
             var dst = BitmapSourceConverter.ToBitmapSource(mat);
             dst.Freeze();
 
             if (mat != null) mat.Dispose();
+            if (betaMat != null) betaMat.Dispose();
 
             return dst;
         }
