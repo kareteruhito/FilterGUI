@@ -360,32 +360,32 @@ namespace FilterGUI
             // Gammaのパラメタを反転画像と合成
             if (AddWeightedAlpha < 1.0d)
             {
-                // ガンマ補正2
-                if (Gamma2 != 0.0d)
+                // ガンマ補正
+                if (Gamma != 0.0d)
                 {
-                    GammaCustom(ref betaMat, Gamma2);
+                    GammaCustom(ref betaMat, Gamma);
                 }
 
                 // ノンローカルミーンフィルタ
                 if (NonLocalMeanH > 0.0d)
                 {
-                    Cv2.FastNlMeansDenoising(betaMat, betaMat, NonLocalMeanH);
+                    Cv2.FastNlMeansDenoising(betaMat, betaMat, (NonLocalMeanH/2));
                 }
 
                 // アンシャープマスキングフィルタ
                 if (UnsharpMaskingK > 0)
-                    UnSharpMasking(ref betaMat, UnsharpMaskingK);
+                    UnSharpMasking(ref betaMat, (UnsharpMaskingK/2));
                 
                 // ノンローカルミーンフィルタ
                 if (NonLocalMeanH2 > 0.0d)
                 {
-                    Cv2.FastNlMeansDenoising(betaMat, betaMat, NonLocalMeanH2);
+                    Cv2.FastNlMeansDenoising(betaMat, betaMat, (NonLocalMeanH2/2));
                 }
 
-                // ガンマ補正
-                if (Gamma != 0.0d)
+                // ガンマ補正2
+                if (Gamma2 != 0.0d)
                 {
-                    GammaCustom(ref betaMat, Gamma);
+                    GammaCustom(ref betaMat, Gamma2);
                 }
 
                 // 合成
